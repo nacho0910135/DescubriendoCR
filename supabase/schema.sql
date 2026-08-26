@@ -269,7 +269,11 @@ GROUP BY target_type, target_id;
 
 -- 8.1 TRIGGER: Sincronizar nuevo usuario desde auth.users a public.users
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+LANGUAGE plpgsql 
+SECURITY DEFINER 
+SET search_path = public, extensions, pg_temp
+AS $$
 BEGIN
     INSERT INTO public.users (id, full_name, avatar_url, username, preferred_currency)
     VALUES (
@@ -287,7 +291,7 @@ BEGIN
         avatar_url = EXCLUDED.avatar_url;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Sincronizar trigger con auth.users si existe
 DO $$
@@ -302,7 +306,11 @@ END $$;
 
 -- 8.2 TRIGGER: Actualizar automáticamente likes_count en fauna_photos
 CREATE OR REPLACE FUNCTION public.fn_update_fauna_photo_likes()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+LANGUAGE plpgsql 
+SECURITY DEFINER 
+SET search_path = public, extensions, pg_temp
+AS $$
 BEGIN
     IF (TG_OP = 'INSERT') AND NEW.target_type = 'fauna_photo' THEN
         UPDATE public.fauna_photos
@@ -315,7 +323,7 @@ BEGIN
     END IF;
     RETURN NULL;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 DROP TRIGGER IF EXISTS trg_update_fauna_photo_likes ON public.likes;
 CREATE TRIGGER trg_update_fauna_photo_likes
@@ -324,7 +332,11 @@ CREATE TRIGGER trg_update_fauna_photo_likes
 
 -- 8.3 TRIGGER: Generar Notificaciones tras Interacciones Sociales
 CREATE OR REPLACE FUNCTION public.fn_notify_on_social_interaction()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+LANGUAGE plpgsql 
+SECURITY DEFINER 
+SET search_path = public, extensions, pg_temp
+AS $$
 DECLARE
     v_recipient_id UUID;
 BEGIN
@@ -352,7 +364,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 DROP TRIGGER IF EXISTS trg_notify_on_like ON public.likes;
 CREATE TRIGGER trg_notify_on_like
