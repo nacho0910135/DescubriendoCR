@@ -8,6 +8,7 @@ import { PlaceDetailModal } from './components/modals/PlaceDetailModal';
 import { FaunaDetailModal } from './components/modals/FaunaDetailModal';
 import { NewSightingModal } from './components/modals/NewSightingModal';
 import { ClaimCommerceModal } from './components/modals/ClaimCommerceModal';
+import { RegisterCommerceModal } from './components/modals/RegisterCommerceModal';
 
 // Tab Views
 import { ExplorarTab } from './components/tabs/ExplorarTab';
@@ -58,6 +59,7 @@ const MainLayout: React.FC = () => {
       <FaunaDetailModal />
       <NewSightingModal />
       <ClaimCommerceModal />
+      <RegisterCommerceModal />
 
       {/* Floating Toast Notification */}
       <AnimatePresence>

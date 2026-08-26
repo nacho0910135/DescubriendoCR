@@ -64,6 +64,10 @@ interface AppContextType {
   user: any | null;
   userProfile: SupabaseUserProfile | null;
   isGuest: boolean;
+  userRole: 'user' | 'verified_merchant';
+  setUserRole: (role: 'user' | 'verified_merchant') => void;
+  isNoAdsSubscriber: boolean;
+  toggleNoAdsSubscription: () => void;
   authModal: AuthModalConfig;
   openAuthModal: (title?: string, desc?: string, onSuccess?: () => void) => void;
   closeAuthModal: () => void;
@@ -94,6 +98,10 @@ interface AppContextType {
     file?: File | Blob
   ) => Promise<boolean>;
   claimCommerce: (commerceId: string, legalName: string, phone: string) => boolean;
+  registerCommerce: (newCommerceData: Partial<ICTCommerce>) => boolean;
+  upgradeCommerceTier: (commerceId: string, tier: 'standard' | 'sponsored_gold') => void;
+  updateCommercePhotos: (commerceId: string, photos: string[]) => void;
+  trackCommerceClick: (commerceId: string, type: 'whatsapp' | 'phone' | 'impression' | 'view') => void;
   
   // Modal Overlays
   selectedPlace: PlaceSpot | null;
@@ -108,8 +116,12 @@ interface AppContextType {
   setIsNewSightingModalOpen: (open: boolean) => void;
   isClaimModalOpen: boolean;
   setIsClaimModalOpen: (open: boolean) => void;
+  isRegisterCommerceModalOpen: boolean;
+  setIsRegisterCommerceModalOpen: (open: boolean) => void;
   commerceToClaim: ICTCommerce | null;
   setCommerceToClaim: (commerce: ICTCommerce | null) => void;
+  activeMerchantCommerceId: string | null;
+  setActiveMerchantCommerceId: (id: string | null) => void;
   
   // Notification Toast
   toastMessage: string | null;
@@ -352,11 +364,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [currency, setCurrency] = useState<Currency>('CRC');
   const [exchangeRate] = useState<ExchangeRate>(INITIAL_EXCHANGE_RATE);
   
-  // Auth state
+  // Auth & Roles state
   const [user, setUser] = useState<any | null>(null);
   const [userProfile, setUserProfile] = useState<SupabaseUserProfile | null>(null);
   const isGuest = !user;
-  
+  const [userRole, setUserRole] = useState<'user' | 'verified_merchant'>('user');
+  const [isNoAdsSubscriber, setIsNoAdsSubscriber] = useState<boolean>(false);
+  const [activeMerchantCommerceId, setActiveMerchantCommerceId] = useState<string | null>('comm-1');
+
   // Data state
   const [places, setPlaces] = useState<PlaceSpot[]>(MOCK_PLACES);
   const [fauna] = useState<FaunaSpecie[]>(MOCK_FAUNA);
@@ -378,6 +393,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [selectedCommerce, setSelectedCommerce] = useState<ICTCommerce | null>(null);
   const [isNewSightingModalOpen, setIsNewSightingModalOpen] = useState<boolean>(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState<boolean>(false);
+  const [isRegisterCommerceModalOpen, setIsRegisterCommerceModalOpen] = useState<boolean>(false);
   const [commerceToClaim, setCommerceToClaim] = useState<ICTCommerce | null>(null);
   
   // Toast notifications
@@ -744,6 +760,154 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return true;
   };
 
+  // Toggle No-Ads subscription ($10/mo B2C)
+  const toggleNoAdsSubscription = () => {
+    setIsNoAdsSubscriber(prev => {
+      const next = !prev;
+      if (next) {
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.5 } });
+        showToast(language === 'es' 
+          ? '¡Suscripción No-Ads Activada ($10/mes)! Experiencia 100% libre de anuncios.' 
+          : 'No-Ads Subscription Activated ($10/mo)! 100% ad-free experience.'
+        );
+      } else {
+        showToast(language === 'es'
+          ? 'Suscripción No-Ads pausada. Modo gratuito con AdMob activo.'
+          : 'No-Ads subscription paused. Free mode with AdMob active.'
+        );
+      }
+      return next;
+    });
+  };
+
+  // Register new commerce B2B ($20/mo standard, or $45/mo sponsored)
+  const registerCommerce = (newCommerceData: Partial<ICTCommerce>): boolean => {
+    const isGold = newCommerceData.subscription_tier === 'sponsored_gold' || newCommerceData.is_sponsored;
+    const newCommerce: ICTCommerce = {
+      id: `comm-${Date.now()}`,
+      name: newCommerceData.name || 'Nuevo Negocio Turístico',
+      category: newCommerceData.category || 'gastronomia',
+      main_category: (newCommerceData.main_category || 'gastronomia') as any,
+      province: newCommerceData.province || 'San José',
+      region: newCommerceData.region || 'Valle Central',
+      description_es: newCommerceData.description_es || '',
+      description_en: newCommerceData.description_en || newCommerceData.description_es || '',
+      cst_level: newCommerceData.cst_level ?? 3,
+      ict_verified: true,
+      rating: 5.0,
+      reviews_count: 1,
+      rating_breakdown: {
+        avg_rating: 5.0,
+        total_reviews: 1,
+        count_5_stars: 1,
+        count_4_stars: 0,
+        count_3_stars: 0,
+        count_2_stars: 0,
+        count_1_stars: 0
+      },
+      price_range_usd: newCommerceData.price_range_usd || '$15 - $45',
+      avg_price_usd: newCommerceData.avg_price_usd || 25,
+      image: newCommerceData.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80',
+      photos: newCommerceData.photos || [
+        newCommerceData.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80'
+      ],
+      whatsapp: newCommerceData.whatsapp || '+50688888888',
+      phone: newCommerceData.phone || '+506 2200-0000',
+      website: newCommerceData.website || '',
+      address: newCommerceData.address || 'Costa Rica',
+      accepts_sinpe: newCommerceData.accepts_sinpe ?? true,
+      accepts_cards: newCommerceData.accepts_cards ?? true,
+      pet_friendly: newCommerceData.pet_friendly ?? false,
+      has_parking: newCommerceData.has_parking ?? true,
+      amenities_es: newCommerceData.amenities_es || ['Atención personalizada', 'CST Certificado', 'Reserva directa'],
+      amenities_en: newCommerceData.amenities_en || ['Personalized service', 'CST Certified', 'Direct booking'],
+      claimed: true,
+      owner_id: user?.id || 'usr-merchant',
+      is_sponsored: !!isGold,
+      sponsored_tier: isGold ? 1 : 0,
+      subscription_tier: isGold ? 'sponsored_gold' : 'standard',
+      subscription_status: 'active',
+      metrics: {
+        impressions: 120,
+        whatsapp_clicks: 8,
+        phone_calls: 3,
+        profile_views: 45
+      }
+    };
+
+    setCommerces(prev => [newCommerce, ...prev]);
+    setActiveMerchantCommerceId(newCommerce.id);
+    setUserRole('verified_merchant');
+    confetti({ particleCount: 90, spread: 70, origin: { y: 0.5 } });
+    showToast(language === 'es' 
+      ? `¡Negocio ${newCommerce.name} registrado con éxito! Subscripción B2B activa.` 
+      : `Business ${newCommerce.name} registered successfully! B2B subscription active.`
+    );
+    return true;
+  };
+
+  // Upgrade commerce subscription tier (e.g. Gold Sponsored)
+  const upgradeCommerceTier = (commerceId: string, tier: 'standard' | 'sponsored_gold') => {
+    const isGold = tier === 'sponsored_gold';
+    setCommerces(prev => prev.map(c => {
+      if (c.id === commerceId) {
+        return {
+          ...c,
+          subscription_tier: tier,
+          is_sponsored: isGold,
+          sponsored_tier: isGold ? 1 : 0
+        };
+      }
+      return c;
+    }));
+    if (isGold) {
+      confetti({ particleCount: 110, spread: 80, origin: { y: 0.5 } });
+      showToast(language === 'es'
+        ? '¡Destacado Patrocinado Gold Activado ($45/mes)! Borde dorado y posicionamiento prioritario en el directorio.'
+        : 'Gold Sponsored Tier Activated ($45/mo)! Gold badge & priority pinning in directory.'
+      );
+    } else {
+      showToast(language === 'es'
+        ? 'Plan B2B Estándar configurado ($20/mes).'
+        : 'Standard B2B Plan set ($20/mo).'
+      );
+    }
+  };
+
+  // Update photo gallery for a commerce
+  const updateCommercePhotos = (commerceId: string, newPhotos: string[]) => {
+    setCommerces(prev => prev.map(c => {
+      if (c.id === commerceId) {
+        return {
+          ...c,
+          photos: newPhotos,
+          image: newPhotos[0] || c.image
+        };
+      }
+      return c;
+    }));
+    showToast(language === 'es' ? 'Galería de fotos del comercio actualizada.' : 'Commerce photo gallery updated.');
+  };
+
+  // Track real interaction metrics (Impressions, Clicks, Calls, Views)
+  const trackCommerceClick = (commerceId: string, type: 'whatsapp' | 'phone' | 'impression' | 'view') => {
+    setCommerces(prev => prev.map(c => {
+      if (c.id === commerceId) {
+        const m = c.metrics || { impressions: 100, whatsapp_clicks: 10, phone_calls: 5, profile_views: 40 };
+        return {
+          ...c,
+          metrics: {
+            impressions: type === 'impression' ? m.impressions + 1 : m.impressions,
+            whatsapp_clicks: type === 'whatsapp' ? m.whatsapp_clicks + 1 : m.whatsapp_clicks,
+            phone_calls: type === 'phone' ? m.phone_calls + 1 : m.phone_calls,
+            profile_views: type === 'view' ? m.profile_views + 1 : m.profile_views,
+          }
+        };
+      }
+      return c;
+    }));
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -765,6 +929,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         user,
         userProfile,
         isGuest,
+        userRole,
+        setUserRole,
+        isNoAdsSubscriber,
+        toggleNoAdsSubscription,
         authModal,
         openAuthModal,
         closeAuthModal,
@@ -789,6 +957,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         addCommunitySighting,
         uploadAndPublishSighting,
         claimCommerce,
+        registerCommerce,
+        upgradeCommerceTier,
+        updateCommercePhotos,
+        trackCommerceClick,
         selectedPlace,
         setSelectedPlace,
         selectedFauna,
@@ -801,8 +973,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setIsNewSightingModalOpen,
         isClaimModalOpen,
         setIsClaimModalOpen,
+        isRegisterCommerceModalOpen,
+        setIsRegisterCommerceModalOpen,
         commerceToClaim,
         setCommerceToClaim,
+        activeMerchantCommerceId,
+        setActiveMerchantCommerceId,
         toastMessage,
         showToast,
       }}

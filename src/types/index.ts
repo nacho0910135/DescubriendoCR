@@ -178,28 +178,95 @@ export interface UserSeenFaunaRecord {
   notes?: string;
 }
 
+export type CommerceCategory = 
+  | 'gastronomia' 
+  | 'hospedajes' 
+  | 'transporte_rentacar' 
+  | 'guias_turisticos' 
+  | 'tours_actividades'
+  | 'eco_lodge'
+  | 'soda_restaurante'
+  | 'tour_operador'
+  | 'escuela_surf'
+  | 'aventura_canopy'
+  | 'rent_a_car';
+
+export interface CommerceMetrics {
+  impressions: number;
+  whatsapp_clicks: number;
+  phone_calls: number;
+  profile_views: number;
+}
+
+export interface RatingBreakdown {
+  avg_rating: number;
+  total_reviews: number;
+  count_5_stars: number;
+  count_4_stars: number;
+  count_3_stars: number;
+  count_2_stars: number;
+  count_1_stars: number;
+}
+
 export interface ICTCommerce {
   id: string;
   name: string;
-  category: 'eco_lodge' | 'soda_restaurante' | 'tour_operador' | 'escuela_surf' | 'aventura_canopy' | 'rent_a_car';
+  category: CommerceCategory;
+  main_category?: 'gastronomia' | 'hospedajes' | 'transporte_rentacar' | 'guias_turisticos' | 'tours_actividades';
   province: CostaRicaProvince;
   region: ICTRegion;
   description_es: string;
   description_en: string;
-  cst_level: number; // 1 to 5 leaves of sustainability
+  cst_level: number; // 0 to 5 leaves of sustainability
   ict_verified: boolean;
-  rating: number;
+  rating: number; // calculated from vw_target_ratings
   reviews_count: number;
+  rating_breakdown?: RatingBreakdown;
   price_range_usd: string; // e.g. "$15 - $45"
   avg_price_usd: number;
   image: string;
+  photos?: string[];
   whatsapp: string;
   phone: string;
   website: string;
   address: string;
+  lat?: number;
+  lng?: number;
+  
+  // Specific Badges
+  accepts_sinpe: boolean;
+  accepts_cards: boolean;
+  pet_friendly: boolean;
+  has_parking: boolean;
+  
   amenities_es: string[];
   amenities_en: string[];
+  
+  // B2B & Monetization
   claimed: boolean;
+  owner_id?: string;
+  is_sponsored?: boolean; // Gold highlighted border and priority pinning
+  sponsored_tier?: number;
+  subscription_tier?: 'standard' | 'sponsored_gold';
+  subscription_status?: 'active' | 'pending' | 'expired';
+  metrics?: CommerceMetrics;
+}
+
+export type Commerce = ICTCommerce;
+
+export interface UserSubscription {
+  is_no_ads: boolean;
+  plan: 'free_admob' | 'no_ads_premium';
+  monthly_price_usd: number;
+  subscribed_since?: string;
+}
+
+export interface MerchantSubscription {
+  commerce_id: string;
+  plan: 'standard_b2b' | 'sponsored_gold';
+  monthly_price_usd: number;
+  status: 'active' | 'pending' | 'expired';
+  next_billing_date: string;
 }
 
 export interface FerryFareCategory {
