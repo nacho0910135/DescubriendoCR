@@ -47,6 +47,7 @@ export interface PlaceSpot {
   highlights_en: string[];
   schedule: string;
   is_featured?: boolean;
+  has_high_tides_risk?: boolean;
   likes_count: number;
   liked_by_user?: boolean;
 }
@@ -327,20 +328,38 @@ export interface LiveWeatherData {
   cached_at?: string;
 }
 
+export interface TideCurvePoint {
+  hour: string;
+  height_m: number;
+  is_current?: boolean;
+  status: 'safe' | 'caution' | 'danger';
+}
+
 export interface LiveTideData {
   current_height_m: number;
   tide_state: 'pleamar' | 'bajamar' | 'subiendo' | 'bajando';
   next_high_tide: { time: string; height_m: number };
   next_low_tide: { time: string; height_m: number };
   is_high_tide_hazard: boolean; // Warning for sandbar/isthmus submerged
+  hazard_level: 'danger' | 'warning' | 'safe';
+  hazard_title_es: string;
+  hazard_title_en: string;
+  hazard_zone_name_es?: string;
+  hazard_zone_name_en?: string;
   hazard_message_es?: string;
   hazard_message_en?: string;
   safe_crossing_hours_es?: string;
   safe_crossing_hours_en?: string;
+  safe_window_start?: string;
+  safe_window_end?: string;
   water_temp_c?: number;
   swell_height_m?: number;
   is_cached?: boolean;
   cached_at?: string;
+  source?: string;
+  station_name?: string;
+  tide_curve_points?: TideCurvePoint[];
+  current_time_str?: string;
 }
 
 export interface EmbassyContact {

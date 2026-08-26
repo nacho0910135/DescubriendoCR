@@ -25,10 +25,12 @@ import {
   ExternalLink,
   ChevronDown
 } from 'lucide-react';
-import { fetchSpotWeather, fetchSpotTides, getCoastalHazardInfo } from '../../lib/weatherTidesService';
+import { fetchSpotWeather, fetchSpotTides } from '../../lib/weatherTidesService';
 import { openWazeWithFallback, openGoogleMaps, openAppleMaps } from '../../lib/navigationDeepLinks';
 import { isSpotSavedOffline, saveSpotForOffline, removeOfflineSpot } from '../../lib/offlineStorage';
 import { LiveWeatherData, LiveTideData } from '../../types';
+import { supabase } from '../../lib/supabase';
+import { TideWarningWidget } from '../coastal/TideWarningWidget';
 
 export const PlaceDetailModal: React.FC = () => {
   const { 
@@ -44,6 +46,7 @@ export const PlaceDetailModal: React.FC = () => {
 
   const [weatherData, setWeatherData] = useState<LiveWeatherData | null>(null);
   const [tideData, setTideData] = useState<LiveTideData | null>(null);
+  const [hasHighTidesRisk, setHasHighTidesRisk] = useState<boolean>(false);
   const [loadingWeather, setLoadingWeather] = useState(false);
   const [isOfflineSaved, setIsOfflineSaved] = useState(false);
   const [showNavMenu, setShowNavMenu] = useState(false);
@@ -55,6 +58,7 @@ export const PlaceDetailModal: React.FC = () => {
     if (!selectedPlace) {
       setWeatherData(null);
       setTideData(null);
+      setHasHighTidesRisk(false);
       return;
     }
 
@@ -67,24 +71,36 @@ export const PlaceDetailModal: React.FC = () => {
       .catch(err => console.warn('Modal weather fetch:', err))
       .finally(() => setLoadingWeather(false));
 
-    // 2. Fetch live tides if coastal
-    const hazard = getCoastalHazardInfo(selectedPlace);
-    const isCoastal = Boolean(
-      hazard || 
-      selectedPlace.category === 'playa' || 
-      selectedPlace.region === 'Pacífico Central' || 
-      selectedPlace.region === 'Pacífico Sur' || 
-      selectedPlace.region === 'Guanacaste' || 
-      selectedPlace.region === 'Caribe'
-    );
+    // 2. Fetch live tides ONLY if destination has has_high_tides_risk enabled in Supabase destinations table
+    let isTidesRiskEnabled = Boolean(selectedPlace.has_high_tides_risk);
 
-    if (isCoastal) {
-      fetchSpotTides(selectedPlace.lat, selectedPlace.lng, selectedPlace)
-        .then(tides => setTideData(tides))
-        .catch(err => console.warn('Modal tides fetch:', err));
-    } else {
-      setTideData(null);
-    }
+    const checkSupabaseDestinationsAndFetchTides = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('destinations')
+          .select('has_high_tides_risk')
+          .eq('id', selectedPlace.id)
+          .maybeSingle();
+
+        if (!error && data && typeof data.has_high_tides_risk === 'boolean') {
+          isTidesRiskEnabled = data.has_high_tides_risk;
+        }
+      } catch (err) {
+        console.warn('Supabase destinations table query warning:', err);
+      }
+
+      setHasHighTidesRisk(isTidesRiskEnabled);
+
+      if (isTidesRiskEnabled) {
+        fetchSpotTides(selectedPlace.lat, selectedPlace.lng, selectedPlace)
+          .then(tides => setTideData(tides))
+          .catch(err => console.warn('Modal tides fetch:', err));
+      } else {
+        setTideData(null);
+      }
+    };
+
+    checkSupabaseDestinationsAndFetchTides();
   }, [selectedPlace]);
 
   if (!selectedPlace) return null;
@@ -230,53 +246,14 @@ export const PlaceDetailModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Coastal Tide Hazard Alert (e.g. Marino Ballena Whale's Tail / Paso de Moisés) */}
-          {tideData && (
-            <div className={`p-4 rounded-2xl border ${
-              tideData.is_high_tide_hazard 
-                ? 'bg-amber-500/10 border-amber-400 dark:border-amber-600 text-amber-950 dark:text-amber-200' 
-                : 'bg-sky-500/10 border-sky-300 dark:border-sky-700 text-sky-950 dark:text-sky-200'
-            }`}>
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-300 shrink-0 mt-0.5">
-                  <Waves className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
-                    <span className="text-xs font-bold uppercase tracking-wider">
-                      {isEs ? 'Estado de Mareas en Vivo' : 'Live Coastal Tide Status'}
-                    </span>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-white dark:bg-stone-800 font-bold shadow-xs">
-                      Altura: {tideData.current_height_m}m ({tideData.tide_state.toUpperCase()})
-                    </span>
-                  </div>
-
-                  {tideData.is_high_tide_hazard && (
-                    <div className="flex items-start gap-1.5 text-xs font-semibold text-amber-900 dark:text-amber-300 mb-2">
-                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                      <span>{isEs ? (tideData.hazard_message_es || '⚠️ Marea alta activa. Senderos de playa y tómbolos pueden estar sumergidos.') : (tideData.hazard_message_en || '⚠️ High tide active. Beach trails and sandbars may be submerged.')}</span>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-2 text-[11px] font-medium pt-1.5 border-t border-sky-200/50 dark:border-sky-800/40">
-                    <div>
-                      <span className="text-stone-500 dark:text-stone-400 block">{isEs ? 'Próxima Bajamar (Ideal caminata)' : 'Next Low Tide (Ideal for walk)'}:</span>
-                      <strong className="text-emerald-700 dark:text-emerald-400">{tideData.next_low_tide.time} ({tideData.next_low_tide.height_m}m)</strong>
-                    </div>
-                    <div>
-                      <span className="text-stone-500 dark:text-stone-400 block">{isEs ? 'Próxima Pleamar (Marea alta)' : 'Next High Tide'}:</span>
-                      <strong className="text-rose-700 dark:text-rose-400">{tideData.next_high_tide.time} ({tideData.next_high_tide.height_m}m)</strong>
-                    </div>
-                  </div>
-
-                  {tideData.safe_crossing_hours_es && (
-                    <p className="text-[11px] text-emerald-800 dark:text-emerald-300 font-bold mt-2">
-                      {isEs ? tideData.safe_crossing_hours_es : tideData.safe_crossing_hours_en}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
+          {/* Coastal Tide Warning Widget (integrated only if destination has has_high_tides_risk enabled in Supabase destinations table) */}
+          {hasHighTidesRisk && tideData && (
+            <TideWarningWidget 
+              tideData={tideData} 
+              placeName={selectedPlace.name} 
+              isEs={isEs} 
+              place={selectedPlace}
+            />
           )}
 
           {/* Live Weather Box with TanStack Cache */}

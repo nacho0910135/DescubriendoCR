@@ -46,6 +46,7 @@ export const MOCK_PLACES: PlaceSpot[] = [
     highlights_en: ['Espadilla Sur Beach', 'Cathedral Point', 'Sloths and Capuchin Monkeys sightings'],
     schedule: 'Mié - Lun: 7:00 AM - 4:00 PM (Martes Cerrado)',
     is_featured: true,
+    has_high_tides_risk: true,
     likes_count: 384,
   },
   {
@@ -198,6 +199,7 @@ export const MOCK_PLACES: PlaceSpot[] = [
     highlights_en: ['Paso de Moisés Sandbar', 'Humpback Whale Watching', 'Coral Reef Snorkeling'],
     schedule: 'Todos los días: 7:00 AM - 4:00 PM (Acceso a pie por marea baja)',
     is_featured: true,
+    has_high_tides_risk: true,
     likes_count: 495,
   },
   {
@@ -223,6 +225,7 @@ export const MOCK_PLACES: PlaceSpot[] = [
     highlights_en: ['White Beach', 'Cahuita Point', 'Coral Reef & White-faced Capuchins'],
     schedule: 'Todos los días: 8:00 AM - 4:00 PM',
     is_featured: false,
+    has_high_tides_risk: true,
     likes_count: 360,
   },
   {
