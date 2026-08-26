@@ -1,13 +1,16 @@
 import { 
   PlaceSpot, 
   FaunaSpecie, 
+  VerifiedSanctuary,
   CommunitySighting, 
   ICTCommerce, 
   FerryDeparture, 
   CIMARTideData, 
   WeatherForecast, 
   RoadAlert,
-  ExchangeRate 
+  ExchangeRate,
+  EmergencyPhone,
+  EmbassyContact
 } from '../types';
 
 export const INITIAL_EXCHANGE_RATE: ExchangeRate = {
@@ -170,31 +173,120 @@ export const MOCK_PLACES: PlaceSpot[] = [
     schedule: 'Reserva previa obligatoria con guía certificado ICT',
     is_featured: true,
     likes_count: 618,
+  },
+  {
+    id: 'spot-7',
+    name: 'Parque Nacional Marino Ballena',
+    category: 'playa',
+    province: 'Puntarenas',
+    region: 'Pacífico Sur',
+    description_es: 'Famoso por su formación rocosa y tómbolo de arena en forma natural de cola de ballena (Paso de Moisés), y por ser el santuario de reproducción de ballenas jorobadas del norte y sur.',
+    description_en: 'Famous for its natural sandbar formation resembling a whale tail (Paso de Moisés) and premier humpback whale calving sanctuary.',
+    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80'
+    ],
+    lat: 9.1456,
+    lng: -83.7441,
+    entry_fee_usd: 6.78, // ~3,500 CRC
+    cst_certified: true,
+    difficulty: 'Fácil',
+    rating: 4.9,
+    reviews_count: 780,
+    highlights_es: ['Tómbolo / Paso de Moisés (Cola de Ballena)', 'Avistamiento de Ballenas Jorobadas', 'Snorkel en Arrecifes Coralinos'],
+    highlights_en: ['Paso de Moisés Sandbar', 'Humpback Whale Watching', 'Coral Reef Snorkeling'],
+    schedule: 'Todos los días: 7:00 AM - 4:00 PM (Acceso a pie por marea baja)',
+    is_featured: true,
+    likes_count: 495,
+  },
+  {
+    id: 'spot-8',
+    name: 'Parque Nacional Cahuita & Punta Uva',
+    category: 'parque_nacional',
+    province: 'Limón',
+    region: 'Caribe',
+    description_es: 'Paraíso caribeño donde los senderos bordean playas de arena dorada, arrecifes de coral vivos y monos aulladores en las copas de los almendros.',
+    description_en: 'Caribbean paradise where coastal paths trace golden beaches, thriving living coral reefs, and howler monkeys in the almond canopies.',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80'
+    ],
+    lat: 9.7342,
+    lng: -82.8465,
+    entry_fee_usd: 5.65,
+    cst_certified: true,
+    difficulty: 'Fácil',
+    rating: 4.8,
+    reviews_count: 620,
+    highlights_es: ['Playa Blanca', 'Punta Cahuita', 'Arrecife Coralino y Monos Cariblancos'],
+    highlights_en: ['White Beach', 'Cahuita Point', 'Coral Reef & White-faced Capuchins'],
+    schedule: 'Todos los días: 8:00 AM - 4:00 PM',
+    is_featured: false,
+    likes_count: 360,
+  },
+  {
+    id: 'spot-9',
+    name: 'Parque Nacional Volcán Poás',
+    category: 'volcan',
+    province: 'Alajuela',
+    region: 'Valle Central',
+    description_es: 'Uno de los cráteres volcánicos de tipo géiser activos más grandes del mundo con una laguna sulfurosa de color turquesa iridiscente.',
+    description_en: 'One of the largest active geyser-type volcanic craters in the world with a striking turquoise sulfuric acid lagoon.',
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80'
+    ],
+    lat: 10.1983,
+    lng: -84.2308,
+    entry_fee_usd: 16.95,
+    cst_certified: true,
+    difficulty: 'Fácil',
+    rating: 4.7,
+    reviews_count: 1100,
+    highlights_es: ['Cráter Principal Activo', 'Laguna Botos', 'Sendero Escalonia de Bosque Enano'],
+    highlights_en: ['Active Main Crater', 'Botos Lagoon', 'Dwarf Cloud Forest Trail'],
+    schedule: 'Todos los días: 8:00 AM - 3:30 PM (Reserva SINAC obligatoria)',
+    is_featured: false,
+    likes_count: 420,
   }
 ];
 
 export const MOCK_FAUNA: FaunaSpecie[] = [
+  // 1. FAUNA OBSERVABLE EN TOURS
   {
     id: 'fauna-1',
     common_name_es: 'Rana de Ojos Rojos',
     common_name_en: 'Red-eyed Tree Frog',
     scientific_name: 'Agalychnis callidryas',
     category: 'anfibios',
+    classification_tag: 'tours',
+    is_tour_observable: true,
     iucn_status: 'LC',
     description_es: 'Símbolo icónico de la fauna costarricense. Sus vibrantes ojos rojos y patas anaranjadas funcionan como mecanismo de defensa visual (coloración aposemática) para asustar depredadores nocturnos.',
     description_en: 'Iconic symbol of Costa Rican wildlife. Its bright scarlet eyes and orange-webbed feet serve as startle coloration to briefly deter nocturnal predators.',
     image: 'https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&w=1000&q=80',
+      'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1000&q=80'
+    ],
     habitat_es: 'Bosques lluviosos de tierras bajas, sobre hojas de árboles cerca de charcas y lagunas.',
     habitat_en: 'Lowland rainforest canopies, resting on broad leaves near breeding ponds.',
     elevation_range: '0 - 1,200 m.s.n.m.',
     best_places: ['La Fortuna (Arenal)', 'Sarapiquí', 'Tortuguero', 'Manuel Antonio'],
     sound_name: 'Chak-chak nocturno',
+    sound_url: 'https://assets.mixkit.co/active_storage/sfx/2416/2416-preview.mp3',
+    anti_poaching_buffer_km: 15,
     fuzzy_hotspots: [
       { name: 'Corredor Sarapiquí', region: 'Llanuras del Norte', lat: 10.45, lng: -84.02, radius_km: 15, density: 'Alta' },
       { name: 'Lagunas de Arenal', region: 'Llanuras del Norte', lat: 10.48, lng: -84.65, radius_km: 12, density: 'Alta' },
       { name: 'Refugio Gandoca-Manzanillo', region: 'Caribe', lat: 9.63, lng: -82.68, radius_km: 10, density: 'Media' },
     ],
     sightings_count: 148,
+    diet_es: 'Insectos voladores nocturnos, polillas, grillos y moscas.',
+    diet_en: 'Nocturnal flying insects, moths, crickets, and flies.',
+    curious_fact_es: 'Cuando duerme, esconde sus ojos y patas bajo el cuerpo para camuflarse perfectamente como una hoja verde.',
+    curious_fact_en: 'When sleeping, it tucks its eyes and legs under its body to blend completely as a green leaf.'
   },
   {
     id: 'fauna-2',
@@ -202,20 +294,31 @@ export const MOCK_FAUNA: FaunaSpecie[] = [
     common_name_en: 'Resplendent Quetzal',
     scientific_name: 'Pharomachrus mocinno',
     category: 'aves',
+    classification_tag: 'tours',
+    is_tour_observable: true,
     iucn_status: 'NT',
-    description_es: 'Una de las aves más hermosas del planeta. Los machos exhiben plumas caudales que superan los 65 cm y un plumaje verde esmeralda iridiscente con pecho carmesí.',
+    description_es: 'Una de las aves más sagradas y hermosas del planeta. Los machos exhiben plumas caudales que superan los 65 cm y un plumaje verde esmeralda iridiscente con pecho carmesí.',
     description_en: 'One of the most magnificent birds on Earth. Males boast emerald-green tail coverts over 65 cm long and a deep crimson chest.',
     image: 'https://images.unsplash.com/photo-1618331835717-801e976710b2?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1618331835717-801e976710b2?auto=format&fit=crop&w=1000&q=80'
+    ],
     habitat_es: 'Bosques nubosos de alta montaña ricos en árboles de aguacatillo silvestre.',
     habitat_en: 'High-elevation cloud forests abundant in wild Lauraceae (avocado) trees.',
     elevation_range: '1,400 - 3,000 m.s.n.m.',
     best_places: ['San Gerardo de Dota', 'Monteverde', 'Parque Nacional Los Quetzales'],
     sound_name: 'Silbido melodioso descendente',
+    sound_url: 'https://assets.mixkit.co/active_storage/sfx/2416/2416-preview.mp3',
+    anti_poaching_buffer_km: 15,
     fuzzy_hotspots: [
       { name: 'Valle de San Gerardo de Dota', region: 'Valle Central', lat: 9.55, lng: -83.80, radius_km: 8, density: 'Alta' },
       { name: 'Santuario Monteverde', region: 'Pacífico Central', lat: 10.32, lng: -84.81, radius_km: 10, density: 'Alta' },
     ],
     sightings_count: 94,
+    diet_es: 'Frutos de aguacatillo silvestre, bayas e insectos pequeños.',
+    diet_en: 'Wild miniature avocados (Lauraceae), wild berries, and small insects.',
+    curious_fact_es: 'Traga los aguacatillos enteros y luego regurgita la semilla intacta, reforestando el bosque nuboso de forma natural.',
+    curious_fact_en: 'It swallows wild avocados whole and regurgitates the clean seed, acting as a vital cloud forest reforester.'
   },
   {
     id: 'fauna-3',
@@ -223,20 +326,32 @@ export const MOCK_FAUNA: FaunaSpecie[] = [
     common_name_en: 'Three-toed Sloth',
     scientific_name: 'Bradypus variegatus',
     category: 'mamiferos',
+    classification_tag: 'simbolos',
+    is_national_symbol: true,
+    is_tour_observable: true,
+    national_symbol_law: 'Ley N° 9997 (2021) - Símbolo Nacional de la Biodiversidad',
     iucn_status: 'LC',
-    description_es: 'Mamífero arborícola de movimientos lentos que pasa la mayor parte de su vida colgado en las copas de los árboles alimentándose de hojas de cecropia (guarumo).',
-    description_en: 'Gentle arboreal mammal known for its deliberate slow motion, spending almost its entire life hanging upside down in cecropia trees.',
+    description_es: 'Mamífero arborícola emblemático declarado Símbolo Nacional de Costa Rica. Posee una máscara facial oscura distintiva y pasa su vida en las copas de árboles de cecropia.',
+    description_en: 'Iconic arboreal mammal designated as a Costa Rican National Symbol. Recognized by its dark eye mask, hanging upside down in cecropia trees.',
     image: 'https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?auto=format&fit=crop&w=1000&q=80'
+    ],
     habitat_es: 'Bosque húmedo tropical y plantaciones agroforestales con árboles de dosel amplio.',
     habitat_en: 'Tropical humid forests and shade agroforestry canopies.',
     elevation_range: '0 - 1,500 m.s.n.m.',
     best_places: ['Manuel Antonio', 'Cahuita', 'Puerto Viejo de Talamanca', 'La Fortuna'],
     sound_name: 'Balido agudo "Aii-Aii"',
+    anti_poaching_buffer_km: 15,
     fuzzy_hotspots: [
       { name: 'Costa de Cahuita', region: 'Caribe', lat: 9.73, lng: -82.84, radius_km: 14, density: 'Alta' },
       { name: 'Senderos de Manuel Antonio', region: 'Pacífico Central', lat: 9.38, lng: -84.14, radius_km: 6, density: 'Alta' },
     ],
     sightings_count: 215,
+    diet_es: 'Hojas tiernas y brotes de árboles de cecropia (guarumo).',
+    diet_en: 'Tender leaves, buds, and twigs of cecropia trees.',
+    curious_fact_es: 'Baja al suelo solo una vez a la semana para defecar, cavando un pequeño hueco en la base del árbol.',
+    curious_fact_en: 'Descends to the ground only once a week to defecate, burying its waste at the base of the tree.'
   },
   {
     id: 'fauna-4',
@@ -244,20 +359,30 @@ export const MOCK_FAUNA: FaunaSpecie[] = [
     common_name_en: 'Scarlet Macaw',
     scientific_name: 'Ara macao',
     category: 'aves',
+    classification_tag: 'tours',
+    is_tour_observable: true,
     iucn_status: 'LC',
     description_es: 'Gran loro neotropical de colores intensos rojo, amarillo y azul. Forma parejas monógamas de por vida y vuela en ruidosas bandadas sobre la costa pacífica.',
     description_en: 'Stunning large neotropical parrot with bright red, yellow, and blue plumage. Mates for life and flies in lively pairs along the Pacific coastline.',
     image: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=1000&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=1000&q=80'
+    ],
     habitat_es: 'Bosques costeros del Pacífico y árboles de almendro de playa.',
     habitat_en: 'Pacific coastal woodlands and beach almond trees (Terminalia catappa).',
     elevation_range: '0 - 500 m.s.n.m.',
     best_places: ['Península de Osa', 'Carara', 'Playa Hermosa (Jacó)', 'Bahía Drake'],
     sound_name: 'Graznido estridente "Rrrr-Aaah"',
+    anti_poaching_buffer_km: 15,
     fuzzy_hotspots: [
       { name: 'P.N. Carara y Tárcoles', region: 'Pacífico Central', lat: 9.78, lng: -84.60, radius_km: 12, density: 'Alta' },
       { name: 'Golfo Dulce / Drake', region: 'Pacífico Sur', lat: 8.68, lng: -83.66, radius_km: 20, density: 'Alta' },
     ],
     sightings_count: 182,
+    diet_es: 'Semillas duras de almendro de playa, higos y frutos silvestres.',
+    diet_en: 'Hard seeds of beach almond, wild figs, and palms.',
+    curious_fact_es: 'Su pico puede ejercer una presión colosal de más de 400 libras por pulgada cuadrada para romper nueces blindadas.',
+    curious_fact_en: 'Its beak exerts over 400 psi of pressure, easily cracking open armored beach almond shells.'
   },
   {
     id: 'fauna-5',
@@ -265,6 +390,8 @@ export const MOCK_FAUNA: FaunaSpecie[] = [
     common_name_en: 'Humpback Whale',
     scientific_name: 'Megaptera novaeangliae',
     category: 'marino',
+    classification_tag: 'tours',
+    is_tour_observable: true,
     iucn_status: 'LC',
     description_es: 'Gigante marino que migra anualmente tanto desde el hemisferio norte (diciembre a abril) como desde la Antártida (julio a noviembre) para dar a luz en las cálidas aguas del Golfo Dulce y Ballena.',
     description_en: 'Ocean giant that undertakes annual migrations from both North and South poles to nurse calves in the warm, calm waters of Bahía Ballena.',
@@ -274,10 +401,445 @@ export const MOCK_FAUNA: FaunaSpecie[] = [
     elevation_range: 'Nivel del mar / 0 m',
     best_places: ['Parque Nacional Marino Ballena (Uvita)', 'Golfo Dulce', 'Isla del Caño'],
     sound_name: 'Canto subacuático armónico',
+    anti_poaching_buffer_km: 25,
     fuzzy_hotspots: [
       { name: 'Tómbolo de Uvita', region: 'Pacífico Sur', lat: 9.15, lng: -83.75, radius_km: 25, density: 'Alta' },
+      { name: 'Golfo Dulce', region: 'Pacífico Sur', lat: 8.52, lng: -83.45, radius_km: 20, density: 'Alta' },
     ],
     sightings_count: 73,
+    diet_es: 'Krill antártico y pequeños cardúmenes de peces por filtración.',
+    diet_en: 'Krill and small schooling fish via baleen filtration.',
+    curious_fact_es: 'Costa Rica tiene la temporada de avistamiento de ballenas jorobadas más larga del mundo gracias a la doble migración.',
+    curious_fact_en: 'Costa Rica boasts the longest humpback whale watching season in the world due to dual polar migrations.'
+  },
+  {
+    id: 'fauna-6',
+    common_name_es: 'Mono Cariblanco / Capuchino',
+    common_name_en: 'White-headed Capuchin',
+    scientific_name: 'Cebus imitator',
+    category: 'mamiferos',
+    classification_tag: 'tours',
+    is_tour_observable: true,
+    iucn_status: 'VU',
+    description_es: 'Primate altamente inteligente y social de Costa Rica. Vive en tropas organizadas y es famoso por su capacidad para usar herramientas naturales.',
+    description_en: 'Highly intelligent and social neotropical primate. Troops inhabit tropical canopies and are famed for complex tool-use.',
+    image: 'https://images.unsplash.com/photo-1574063413132-355dbfd83e25?auto=format&fit=crop&w=1000&q=80',
+    habitat_es: 'Bosques primarios, secundarios y manglares en ambas costas.',
+    habitat_en: 'Primary, secondary forests, and coastal mangroves.',
+    elevation_range: '0 - 1,500 m.s.n.m.',
+    best_places: ['Manuel Antonio', 'Santa Rosa', 'Cahuita', 'Tortuguero'],
+    sound_name: 'Chasquidos y chillidos de contacto',
+    anti_poaching_buffer_km: 15,
+    fuzzy_hotspots: [
+      { name: 'Parque Manuel Antonio', region: 'Pacífico Central', lat: 9.38, lng: -84.14, radius_km: 8, density: 'Alta' },
+      { name: 'P.N. Cahuita', region: 'Caribe', lat: 9.73, lng: -82.84, radius_km: 10, density: 'Alta' }
+    ],
+    sightings_count: 165,
+    diet_es: 'Omnívoro: frutas, flores, brotes, insectos y pequeños cangrejos.',
+    diet_en: 'Omnivorous: fruits, flowers, shoots, insects, and small crabs.',
+    curious_fact_es: 'Frotan hojas de plantas aromáticas (como piperáceas) en su pelaje para repeler mosquitos y parásitos.',
+    curious_fact_en: 'They rub aromatic medicinal plants across their fur as natural insect repellent and antiseptic.'
+  },
+  {
+    id: 'fauna-7',
+    common_name_es: 'Cocodrilo Americano',
+    common_name_en: 'American Crocodile',
+    scientific_name: 'Crocodylus acutus',
+    category: 'reptiles',
+    classification_tag: 'tours',
+    is_tour_observable: true,
+    iucn_status: 'VU',
+    description_es: 'Gran reptil depredador que puede superar los 4.5 metros de longitud. Espectacularmente observable desde el puente sobre el Río Tárcoles y en los estuarios del Pacífico.',
+    description_en: 'Prehistoric apex predator reaching lengths over 4.5 meters. Most famous observation point is the bridge over the Tárcoles River.',
+    image: 'https://images.unsplash.com/photo-1527786356703-4b100091cd2c?auto=format&fit=crop&w=1000&q=80',
+    habitat_es: 'Ríos caudalosos, estuarios de manglar y lagunas costeras del Pacífico y Caribe.',
+    habitat_en: 'Major river basins, mangrove estuaries, and coastal lagoons.',
+    elevation_range: '0 - 200 m.s.n.m.',
+    best_places: ['Río Tárcoles', 'Palo Verde', 'Tortuguero', 'Sierpe'],
+    sound_name: 'Bramido subacuático grave',
+    anti_poaching_buffer_km: 15,
+    fuzzy_hotspots: [
+      { name: 'Cuenca Río Tárcoles', region: 'Pacífico Central', lat: 9.78, lng: -84.60, radius_km: 15, density: 'Alta' },
+      { name: 'Humedal Palo Verde', region: 'Guanacaste', lat: 10.35, lng: -85.34, radius_km: 18, density: 'Alta' }
+    ],
+    sightings_count: 120,
+    diet_es: 'Peces, aves acuáticas, cangrejos y mamíferos que se acercan a orillas.',
+    diet_en: 'Fish, water birds, crabs, and riverbank mammals.',
+    curious_fact_es: 'El Río Tárcoles alberga una de las poblaciones más densas de cocodrilos de todo el continente americano.',
+    curious_fact_en: 'The Tárcoles River hosts one of the highest densities of American Crocodiles in the Americas.'
+  },
+  {
+    id: 'fauna-8',
+    common_name_es: 'Coatí / Pizote de Nariz Blanca',
+    common_name_en: 'White-nosed Coati',
+    scientific_name: 'Nasua narica',
+    category: 'mamiferos',
+    classification_tag: 'tours',
+    is_tour_observable: true,
+    iucn_status: 'LC',
+    description_es: 'Mamífero carismático de cola larga anillada que camina erguida. Los machos son solitarios y las hembras forman tropas activas y curiosas a lo largo de senderos.',
+    description_en: 'Charismatic mammal with a long, ringed tail carried upright. Inquisitive bands forage actively along forest trails.',
+    image: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1000&q=80',
+    habitat_es: 'Bosques secos, húmedos y nubosos en todo el país.',
+    habitat_en: 'Dry, humid, and cloud forests across Costa Rica.',
+    elevation_range: '0 - 2,500 m.s.n.m.',
+    best_places: ['Parque Nacional Volcán Arenal', 'Rincón de la Vieja', 'Santa Rosa', 'Monteverde'],
+    sound_name: 'Chirrido agudo de alerta',
+    anti_poaching_buffer_km: 15,
+    fuzzy_hotspots: [
+      { name: 'Senderos Volcán Arenal', region: 'Llanuras del Norte', lat: 10.46, lng: -84.70, radius_km: 12, density: 'Alta' },
+      { name: 'P.N. Rincón de la Vieja', region: 'Guanacaste', lat: 10.75, lng: -85.35, radius_km: 15, density: 'Alta' }
+    ],
+    sightings_count: 198,
+    diet_es: 'Omnívoro: frutos caídos, raíces, insectos, escarabajos y pequeños lagartos.',
+    diet_en: 'Omnivorous: fallen fruits, roots, grubs, beetles, and small lizards.',
+    curious_fact_es: 'Su hocico flexible puede rotar en 60 grados para husmear bajo troncos caídos y hojarasca.',
+    curious_fact_en: 'Its flexible snout can rotate 60 degrees to sniff out grubs beneath fallen timber.'
+  },
+
+  // 2. FAUNA ENDÉMICA
+  {
+    id: 'fauna-9',
+    common_name_es: 'Pinzón de la Isla del Coco',
+    common_name_en: 'Cocos Finch',
+    scientific_name: 'Pinaroloxias inornata',
+    category: 'aves',
+    classification_tag: 'endemica',
+    is_endemic: true,
+    iucn_status: 'VU',
+    description_es: 'Especie 100% endémica de la remota Isla del Coco en el Océano Pacífico. Es el único miembro de los famosos "Pinzones de Darwin" que habita fuera de las Islas Galápagos.',
+    description_en: '100% endemic species found exclusively on remote Cocos Island. It is the only "Darwins finch" native outside the Galápagos archipelago.',
+    image: 'https://images.unsplash.com/photo-1522926197415-e55c22c88c71?auto=format&fit=crop&w=1000&q=80',
+    habitat_es: 'Bosques lluviosos y vegetación costera de la Isla del Coco.',
+    habitat_en: 'Pristine rainforest and coastal shrubs of Cocos Island National Park.',
+    elevation_range: '0 - 634 m.s.n.m. (Isla del Coco)',
+    best_places: ['Parque Nacional Isla del Coco (Bahía Wafer y Bahía Chatham)'],
+    sound_name: 'Trino metálico rápido "Tzii-tzii"',
+    anti_poaching_buffer_km: 25,
+    fuzzy_hotspots: [
+      { name: 'Parque Nacional Isla del Coco', region: 'Pacífico Sur', lat: 5.53, lng: -87.05, radius_km: 20, density: 'Alta' }
+    ],
+    sightings_count: 22,
+    diet_es: 'Insectos, néctar, semillas y savia de plantas insulares.',
+    diet_en: 'Insects, nectar, seeds, and sap from endemic island plants.',
+    curious_fact_es: 'Cada individuo aprende una técnica de forrajeo única: unos buscan en hojas secas, otros extraen savia o capturan insectos voladores.',
+    curious_fact_en: 'Each individual specializes in a distinct foraging method: probing dead leaves, sipping nectar, or catching flies.'
+  },
+  {
+    id: 'fauna-10',
+    common_name_es: 'Rana de Cristal de Diana',
+    common_name_en: 'Dianas Bare-hearted Glassfrog',
+    scientific_name: 'Hyalinobatrachium dianae',
+    category: 'anfibios',
+    classification_tag: 'endemica',
+    is_endemic: true,
+    iucn_status: 'EN',
+    description_es: 'Rana de cristal descubierta en 2015 en la vertiente caribeña de Talamanca. Su piel ventral es completamente transparente, dejando ver su corazón latiendo y órganos internos.',
+    description_en: 'Endemic glassfrog discovered in 2015 in Talamanca. Its transparent belly reveals its beating heart and digestive tract in vivid detail.',
+    image: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=1000&q=80',
+    habitat_es: 'Bosque pluvial premontano tropical sobre riachuelos cristalinos en Talamanca.',
+    habitat_en: 'Premontane rainforest canopies directly above clean mountain streams in Talamanca.',
+    elevation_range: '400 - 900 m.s.n.m.',
+    best_places: ['Estribaciones de Talamanca (Limón / Cartago)', 'Reserva Biológica Hitoy Cerere'],
+    sound_name: 'Silbido tipo insecto agudo (similar a un grillo)',
+    anti_poaching_buffer_km: 20,
+    fuzzy_hotspots: [
+      { name: 'Cordillera de Talamanca (Caribe)', region: 'Caribe', lat: 9.68, lng: -83.15, radius_km: 20, density: 'Alta' }
+    ],
+    sightings_count: 19,
+    diet_es: 'Diminutos dípteros, colémbolos y micro-insectos fluviales.',
+    diet_en: 'Tiny flies, springtails, and micro-insects along mountain streams.',
+    curious_fact_es: 'Su canto no suena como una rana tradicional, sino como un silbido metálico idéntico al de un insecto.',
+    curious_fact_en: 'Its advertisement call sounds like a metallic insect buzz rather than a typical frog croak.'
+  },
+  {
+    id: 'fauna-11',
+    common_name_es: 'Colibrí Manglero',
+    common_name_en: 'Mangrove Hummingbird',
+    scientific_name: 'Amazilia boucardi',
+    category: 'aves',
+    classification_tag: 'endemica',
+    is_endemic: true,
+    iucn_status: 'EN',
+    description_es: 'Ave 100% endémica de la costa pacífica de Costa Rica, restringida exclusivamente a los manglares de mangle té (Pelliciera rhizophorae).',
+    description_en: '100% endemic trochilid bird restricted exclusively to the Pacific tea mangrove forests (Pelliciera rhizophorae) of Costa Rica.',
+    image: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=1000&q=80',
+    habitat_es: 'Ecosistemas de manglar del litoral pacífico (Térraba-Sierpe y Golfo de Nicoya).',
+    habitat_en: 'Pacific mangrove swamp channels and tea-mangrove blooms.',
+    elevation_range: '0 - 15 m.s.n.m.',
+    best_places: ['Humedal Nacional Térraba-Sierpe', 'Golfo de Nicoya', 'Estero Puntarenas'],
+    sound_name: 'Trino zumbador agudo y territorial',
+    anti_poaching_buffer_km: 20,
+    fuzzy_hotspots: [
+      { name: 'Humedal Térraba-Sierpe', region: 'Pacífico Sur', lat: 8.88, lng: -83.55, radius_km: 20, density: 'Alta' },
+      { name: 'Manglares Golfo de Nicoya', region: 'Pacífico Central', lat: 9.98, lng: -84.85, radius_km: 15, density: 'Media' }
+    ],
+    sightings_count: 31,
+    diet_es: 'Néctar de las flores de mangle té y pequeños insectos en vuelo.',
+    diet_en: 'Nectar of tea mangrove flowers and tiny flying gnats.',
+    curious_fact_es: 'Depende de forma absoluta de los canales de mangle té para su cortejo, alimentación y anidación.',
+    curious_fact_en: 'Completely dependent on tea mangrove stands for breeding, nesting, and food security.'
+  },
+
+  // 3. SÍMBOLOS NACIONALES
+  {
+    id: 'fauna-12',
+    common_name_es: 'Yigüirro',
+    common_name_en: 'Clay-colored Thrush',
+    scientific_name: 'Turdus grayi',
+    category: 'aves',
+    classification_tag: 'simbolos',
+    is_national_symbol: true,
+    national_symbol_law: 'Ley N° 6031 (1977) - Ave Nacional de Costa Rica',
+    iucn_status: 'LC',
+    description_es: 'Ave Nacional de Costa Rica. Aunque su plumaje es de un pardo modesto, fue elegida por su canto virtuoso y melodioso que anuncia con entusiasmo la llegada de las lluvias a inicios de mayo.',
+    description_en: 'National Bird of Costa Rica. Chosen for its beautiful, melodious song that traditionally heralds the arrival of the spring green season in early May.',
+    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1000&q=80',
+    habitat_es: 'Jardines, cafetales, pastizales arbolados y bordes de bosque en todo el Valle Central y país.',
+    habitat_en: 'Urban gardens, coffee plantations, and forest edges throughout Costa Rica.',
+    elevation_range: '0 - 2,400 m.s.n.m.',
+    best_places: ['Valle Central (San José, Heredia, Alajuela, Cartago)', 'Turrialba', 'Monteverde'],
+    sound_name: 'Canto melodioso de bienvenida a las lluvias',
+    anti_poaching_buffer_km: 10,
+    fuzzy_hotspots: [
+      { name: 'Valle Central y Cafetales', region: 'Valle Central', lat: 9.93, lng: -84.08, radius_km: 15, density: 'Alta' }
+    ],
+    sightings_count: 280,
+    diet_es: 'Lombrices, frutas maduras (papaya, banano, higos) e insectos de suelo.',
+    diet_en: 'Earthworms, ripe tropical fruits (papaya, bananas), and soil grubs.',
+    curious_fact_es: 'Los agricultores costarricenses se guiaban por su canto para saber el día exacto en que debían sembrar el maíz y frijol.',
+    curious_fact_en: 'Costa Rican farmers historically timed their crop plantings to the onset of the Yigüirros breeding songs.'
+  },
+  {
+    id: 'fauna-13',
+    common_name_es: 'Venado Cola Blanca',
+    common_name_en: 'White-tailed Deer',
+    scientific_name: 'Odocoileus virginianus',
+    category: 'mamiferos',
+    classification_tag: 'simbolos',
+    is_national_symbol: true,
+    national_symbol_law: 'Ley N° 7497 (1995) - Símbolo de la Fauna Silvestre',
+    iucn_status: 'LC',
+    description_es: 'Símbolo de la Fauna Silvestre Costarricense. Mamífero rumiante esbelto de patas largas, caracterizado por levantar su cola mostrando una mancha blanca al huir.',
+    description_en: 'National Symbol of Costa Rican Terrestrial Wildlife. An agile, slender ungulate recognized by its white tail flag flashed when fleeing danger.',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1000&q=80',
+    habitat_es: 'Bosques secos tropicales de Guanacaste y sabanas protegidas.',
+    habitat_en: 'Tropical dry forests and protected savannas of Guanacaste.',
+    elevation_range: '0 - 1,300 m.s.n.m.',
+    best_places: ['Parque Nacional Santa Rosa', 'Palo Verde', 'Refugio Camaronal'],
+    sound_name: 'Bufido y pataleo de alerta',
+    anti_poaching_buffer_km: 15,
+    fuzzy_hotspots: [
+      { name: 'Sabanas de Santa Rosa', region: 'Guanacaste', lat: 10.84, lng: -85.62, radius_km: 20, density: 'Alta' },
+      { name: 'P.N. Palo Verde', region: 'Guanacaste', lat: 10.35, lng: -85.34, radius_km: 15, density: 'Alta' }
+    ],
+    sightings_count: 110,
+    diet_es: 'Hojas, ramitas tiernas de leguminosas, frutos caídos y pasto tierno.',
+    diet_en: 'Leaves, tender legume twigs, fallen fruits, and fresh grasses.',
+    curious_fact_es: 'Los machos mudan su cornamenta ósea cada año y la vuelven a desarrollar completamente durante la temporada de celo.',
+    curious_fact_en: 'Males shed and completely regrow their solid bone antlers each year in preparation for mating season.'
+  },
+  {
+    id: 'fauna-14',
+    common_name_es: 'Manatí del Caribe',
+    common_name_en: 'West Indian Manatee',
+    scientific_name: 'Trichechus manatus',
+    category: 'marino',
+    classification_tag: 'simbolos',
+    is_national_symbol: true,
+    national_symbol_law: 'Ley N° 9264 (2014) - Símbolo de la Fauna Marina',
+    iucn_status: 'CR',
+    description_es: 'Símbolo Nacional de la Fauna Marina Costarricense. Vaca marina herbívora gigante y dócil que habita los intrincados canales y lagunas fluviales de Tortuguero.',
+    description_en: 'Costa Rican National Symbol of Marine Wildlife. A gentle, herbivorous marine giant grazing along the protected canals of Tortuguero.',
+    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1000&q=80',
+    habitat_es: 'Canales de agua dulce y estuarios protegidos de la costa caribeña norte.',
+    habitat_en: 'Freshwater canals, coastal lagoons, and estuaries of the North Caribbean.',
+    elevation_range: 'Nivel del mar / 0 m',
+    best_places: ['Parque Nacional Tortuguero', 'Refugio Nacional Barra del Colorado'],
+    sound_name: 'Chirrido subacuático de baja frecuencia',
+    anti_poaching_buffer_km: 25,
+    fuzzy_hotspots: [
+      { name: 'Canales de Tortuguero', region: 'Caribe', lat: 10.54, lng: -83.50, radius_km: 25, density: 'Alta' }
+    ],
+    sightings_count: 15,
+    diet_es: 'Plantas acuáticas sumergidas, lirios de agua y pastos marinos.',
+    diet_en: 'Submerged aquatic vegetation, water hyacinths, and freshwater grasses.',
+    curious_fact_es: 'La ley que lo declaró símbolo nacional fue impulsada por niños de la escuela de Limoncito para protegerlo de la extinción.',
+    curious_fact_en: 'The national law declaring it a symbol was initiated by schoolchildren in Limoncito to protect it from extinction.'
+  },
+  {
+    id: 'fauna-15',
+    common_name_es: 'Jaguar / Balam',
+    common_name_en: 'Jaguar',
+    scientific_name: 'Panthera onca',
+    category: 'mamiferos',
+    classification_tag: 'tours',
+    is_tour_observable: true,
+    iucn_status: 'NT',
+    description_es: 'El felino más grande de América y máximo depredador de las selvas de Costa Rica. Esencial para el equilibrio de los ecosistemas.',
+    description_en: 'Largest feline in the Americas and top apex predator in Costa Rican tropical forests.',
+    image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1000&q=80',
+    habitat_es: 'Selvas primarias de Corcovado, Tortuguero, Santa Rosa y Talamanca.',
+    habitat_en: 'Primary rainforests of Corcovado, Tortuguero, and Santa Rosa.',
+    elevation_range: '0 - 2,000 m.s.n.m.',
+    best_places: ['Parque Nacional Corcovado', 'Tortuguero', 'Santa Rosa'],
+    sound_name: 'Rugido gutural de acecho',
+    anti_poaching_buffer_km: 30,
+    fuzzy_hotspots: [
+      { name: 'Estación Sirena (Corcovado)', region: 'Pacífico Sur', lat: 8.48, lng: -83.59, radius_km: 30, density: 'Media' }
+    ],
+    sightings_count: 38,
+    diet_es: 'Chancho de monte, pecaríes, tortugas marinas, venados y perezosos.',
+    diet_en: 'Wild peccaries, sea turtles, deer, and sloths.',
+    curious_fact_es: 'Tiene la mordida más potente de todos los felinos en relación con su tamaño corporal, capaz de perforar caparazones de tortugas.',
+    curious_fact_en: 'Has the strongest bite relative to body size of any big cat, easily crushing turtle shells.'
+  }
+];
+
+export const MOCK_SANCTUARIES: VerifiedSanctuary[] = [
+  {
+    id: 'sanc-1',
+    name: 'Rescate Wildlife Rescue Center (Antiguo Zoo Ave)',
+    province: 'Alajuela',
+    region: 'Valle Central',
+    location_name: 'La Garita de Alajuela',
+    description_es: 'Pionero en rehabilitación y liberación de fauna silvestre en Costa Rica desde 1990. Alberga un hospital veterinario de punta y un santuario botánico para animales no liberables.',
+    description_en: 'Pioneer wildlife rehabilitation center operating since 1990. Features a state-of-the-art veterinary clinic and lifetime sanctuary for non-releasable wildlife.',
+    image: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=1000&q=80',
+    species_rescued: ['Lapas Rojas', 'Monos Araña', 'Tucanes', 'Perezosos', 'Jaguares', 'Caimanes'],
+    mission_es: 'Rescate, rehabilitación y reintegración de animales silvestres víctimas de mascotismo, accidentes o cacería.',
+    mission_en: 'Rescue, medical rehabilitation, and wild reintroduction of wildlife victims of pet trade and habitat loss.',
+    phone_whatsapp: '+506 2433-8989',
+    website: 'https://rescatewildlife.org',
+    visiting_hours: 'Lunes a Domingo: 9:00 AM - 5:00 PM',
+    admission_usd: 15.00,
+    cst_certified: true,
+    lat: 10.015,
+    lng: -84.288,
+    responsible_tips_es: [
+      'No tocar ni intentar alimentar a los animales.',
+      'Mantener un volumen de voz bajo para no estresar a los pacientes en recuperación.',
+      'Tu entrada financia directamente cirugías y alimento de más de 3,000 animales al año.'
+    ],
+    responsible_tips_en: [
+      'Do not touch or attempt to feed the wildlife.',
+      'Keep noise levels low near recovering animals.',
+      '100% of your entrance fee funds veterinary surgeries and daily nutrition.'
+    ]
+  },
+  {
+    id: 'sanc-2',
+    name: 'Jaguar Rescue Center (JRC)',
+    province: 'Limón',
+    region: 'Caribe',
+    location_name: 'Playa Chiquita, Puerto Viejo de Talamanca',
+    description_es: 'Centro de rehabilitación de renombre internacional enfocado en animales del Caribe Sur como perezosos huérfanos, monos aulladores, osos hormigueros y felinos menores.',
+    description_en: 'World-renowned wildlife rescue center rehabilitating injured and orphaned South Caribbean animals back to the wild.',
+    image: 'https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?auto=format&fit=crop&w=1000&q=80',
+    species_rescued: ['Perezosos de Dos y Tres Dedos', 'Monos Aulladores', 'Ocelotes', 'Búhos', 'Tucanes', 'Serpientes Venenosas'],
+    mission_es: 'Salvar vidas silvestres, educar a las comunidades locales y reforestar corredores biológicos.',
+    mission_en: 'Save wildlife lives, promote conservation education, and release healthy animals back to primary rainforest.',
+    phone_whatsapp: '+506 2750-0706',
+    website: 'https://jaguarrescue.foundation',
+    visiting_hours: 'Tours Guiados: 9:30 AM y 11:30 AM (Reserva previa recomendada)',
+    admission_usd: 24.00,
+    cst_certified: true,
+    lat: 9.638,
+    lng: -82.721,
+    responsible_tips_es: [
+      'Las fotos con flash están estrictamente prohibidas.',
+      'Los tours son siempre guiados por biólogos y educadores capacitados.',
+      'El 40% de los animales recibidos son exitosamente liberados en reservas protegidas de Talamanca.'
+    ],
+    responsible_tips_en: [
+      'Flash photography is strictly prohibited.',
+      'Tours are exclusively guided by trained biologists and naturalists.',
+      'Over 40% of rescued animals are successfully released into protected primary forests.'
+    ]
+  },
+  {
+    id: 'sanc-3',
+    name: 'Toucan Rescue Ranch (TRR)',
+    province: 'Heredia',
+    region: 'Valle Central',
+    location_name: 'San Isidro de Heredia',
+    description_es: 'Especialistas mundiales en medicina neonatal de perezosos huérfanos y rehabilitación de aves rapaces, tucanes y búhos en las montañas de Heredia.',
+    description_en: 'Global leaders in orphan sloth neonatal care and comprehensive raptor/toucan medical rehabilitation.',
+    image: 'https://images.unsplash.com/photo-1550853024-fae8dd4be47f?auto=format&fit=crop&w=1000&q=80',
+    species_rescued: ['Tucanes Pico Iris', 'Perezosos Bebés', 'Lechuzas', 'Nutrias de Río', 'Monos Araña'],
+    mission_es: 'Rescatar, rehabilitar y reintroducir animales silvestres mientras se educa sobre la conservación de hábitats.',
+    mission_en: 'Rescue, rehabilitate, and release Costa Rican wildlife, with a special passion for toucans, sloths, and owls.',
+    phone_whatsapp: '+506 2268-4041',
+    website: 'https://toucanrescueranch.org',
+    visiting_hours: 'Visitas educativas con cita previa (9:00 AM - 3:00 PM)',
+    admission_usd: 35.00,
+    cst_certified: true,
+    lat: 10.023,
+    lng: -84.053,
+    responsible_tips_es: [
+      'Reserva tu recorrido educativo online para asegurar el aforo limitado.',
+      'Conoce el programa "Sloth High School" para el entrenamiento de perezosos antes de su liberación.'
+    ],
+    responsible_tips_en: [
+      'Book your educational walk in advance to maintain safe small-group limits.',
+      'Learn about their unique "Sloth High School" where orphans train for canopy life.'
+    ]
+  },
+  {
+    id: 'sanc-4',
+    name: 'Ponderosa Adventure Park & Wild Safari',
+    province: 'Guanacaste',
+    region: 'Guanacaste',
+    location_name: 'El Salto, Liberia',
+    description_es: 'Parque de aventura y vida silvestre en la pampa guanacasteca con recorridos safari, cataratas naturales de agua turquesa y actividades de conservación.',
+    description_en: 'Guanacaste adventure and wildlife safari park set amid tropical dry savannas with turquoise waterfalls and animal care programs.',
+    image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1000&q=80',
+    species_rescued: ['Venados Cola Blanca', 'Tapires', 'Guacamayas', 'Jirafas Safari', 'Monos Cariblancos'],
+    mission_es: 'Fomentar el contacto respetuoso con la naturaleza y el cuidado ético de especies bajo supervisión profesional.',
+    mission_en: 'Promote respectful connection with nature and professional animal welfare.',
+    phone_whatsapp: '+506 2288-1000',
+    website: 'https://ponderosacr.com',
+    visiting_hours: 'Martes a Domingo: 8:30 AM - 5:00 PM',
+    admission_usd: 38.00,
+    cst_certified: true,
+    lat: 10.584,
+    lng: -85.438,
+    responsible_tips_es: [
+      'Sigue las instrucciones de los guías durante el recorrido en camión safari.',
+      'Apto para todas las edades con senderos accesibles y miradores de cascada.'
+    ],
+    responsible_tips_en: [
+      'Follow certified guide instructions during the open-air safari tour.',
+      'All-ages accessibility with paved trails and waterfall viewpoints.'
+    ]
+  },
+  {
+    id: 'sanc-5',
+    name: 'Centro de Rescate Las Pumas',
+    province: 'Guanacaste',
+    region: 'Guanacaste',
+    location_name: 'Cañas, Guanacaste',
+    description_es: 'Fundado en los años 60 por Doña Lilly Bodmer. Santuario histórico especializado en los 6 felinos silvestres de Costa Rica y aves neotropicales.',
+    description_en: 'Historic wildlife sanctuary established in the 1960s, specializing in all 6 Costa Rican wild feline species.',
+    image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1000&q=80',
+    species_rescued: ['Jaguares', 'Pumas', 'Manigordos (Ocelotes)', 'Cauceles (Margays)', 'Yaguarundíes', 'TigRILLOS'],
+    mission_es: 'Albergar felinos no liberables y educar sobre la prevención del conflicto humano-felino.',
+    mission_en: 'Provide forever sanctuary to non-releasable wildcats and educate communities on human-feline coexistence.',
+    phone_whatsapp: '+506 2669-6019',
+    website: 'https://centrorescatelaspumas.org',
+    visiting_hours: 'Lunes a Domingo: 8:00 AM - 4:00 PM',
+    admission_usd: 12.00,
+    cst_certified: true,
+    lat: 10.435,
+    lng: -85.095,
+    responsible_tips_es: [
+      'Camina en silencio cerca de los recintos de felinos para no alterarlos.',
+      'Conoce la historia de cada felino rescatado de trampas ilegales.'
+    ],
+    responsible_tips_en: [
+      'Walk quietly around feline habitats to preserve their natural calm.',
+      'Read the personal rescue story of each big cat on the interpretive boards.'
+    ]
   }
 ];
 
@@ -286,9 +848,12 @@ export const MOCK_COMMUNITY_SIGHTINGS: CommunitySighting[] = [
     id: 'sight-1',
     specie_id: 'fauna-1',
     specie_name: 'Rana de Ojos Rojos',
-    user_name: 'María Quesada (Guía Certificada)',
+    user_id: 'usr-1',
+    user_name: 'María Quesada (Bióloga Guía)',
     user_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+    user_role: 'Bióloga & Guía ICT',
     location_name: 'Laguna Arenal Oasis',
+    province: 'Alajuela',
     region: 'Llanuras del Norte',
     fuzzy_lat: 10.468,
     fuzzy_lng: -84.642,
@@ -296,15 +861,38 @@ export const MOCK_COMMUNITY_SIGHTINGS: CommunitySighting[] = [
     timestamp: 'Hace 3 horas',
     notes: 'Avistada en el envés de una hoja de platanilla después de la llovizna vespertina.',
     likes: 34,
+    liked_by_user: false,
     is_verified: true,
+    is_vulnerable: false,
+    comments: [
+      {
+        id: 'c-1',
+        user_id: 'usr-10',
+        user_name: 'David Zúñiga',
+        user_avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+        comment: '¡Qué nitidez de toma! ¿Qué lente usaste?',
+        created_at: 'Hace 2 horas'
+      },
+      {
+        id: 'c-2',
+        user_id: 'usr-1',
+        user_name: 'María Quesada',
+        user_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+        comment: 'Macro 100mm f/2.8 con luz difusa suave sin flash directo.',
+        created_at: 'Hace 1 hora'
+      }
+    ]
   },
   {
     id: 'sight-2',
     specie_id: 'fauna-2',
     specie_name: 'Quetzal Resplandeciente',
+    user_id: 'usr-2',
     user_name: 'Carlos Solano B.',
     user_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+    user_role: 'Fotógrafo de Aves',
     location_name: 'Sendero Los Robles, Dota',
+    province: 'San José',
     region: 'Valle Central',
     fuzzy_lat: 9.553,
     fuzzy_lng: -83.805,
@@ -312,23 +900,103 @@ export const MOCK_COMMUNITY_SIGHTINGS: CommunitySighting[] = [
     timestamp: 'Ayer, 6:45 AM',
     notes: 'Macho adulto alimentándose de frutos de aguacatillo. ¡Plumas de cola intactas!',
     likes: 67,
+    liked_by_user: true,
     is_verified: true,
+    is_vulnerable: true,
+    comments: [
+      {
+        id: 'c-3',
+        user_id: 'usr-4',
+        user_name: 'Elena Rostrán',
+        user_avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
+        comment: '¡Espectacular! La luz de la mañana en San Gerardo de Dota es inigualable.',
+        created_at: 'Ayer'
+      }
+    ]
   },
   {
     id: 'sight-3',
     specie_id: 'fauna-3',
     specie_name: 'Perezoso de Tres Dedos',
+    user_id: 'usr-3',
     user_name: 'Sofia Brenes',
     user_avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+    user_role: 'Exploradora Tica',
     location_name: 'Playa Negra, Cahuita',
+    province: 'Limón',
     region: 'Caribe',
     fuzzy_lat: 9.735,
     fuzzy_lng: -82.839,
     image: 'https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?auto=format&fit=crop&w=800&q=80',
     timestamp: 'Hace 2 días',
-    notes: 'Mamá perezosa con cría en el pecho trepando un guarumo.',
+    notes: 'Mamá perezosa con cría en el pecho trepando un guarumo frente al mar.',
     likes: 92,
+    liked_by_user: false,
     is_verified: true,
+    is_vulnerable: false,
+    comments: [
+      {
+        id: 'c-4',
+        user_id: 'usr-6',
+        user_name: 'Javier Monge',
+        user_avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+        comment: 'Pura ternura. Recordar siempre mantener al menos 3 metros de distancia.',
+        created_at: 'Hace 1 día'
+      }
+    ]
+  },
+  {
+    id: 'sight-4',
+    specie_id: 'fauna-4',
+    specie_name: 'Guacamaya Roja (Lapa Roja)',
+    user_id: 'usr-4',
+    user_name: 'Elena Rostrán',
+    user_avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
+    user_role: 'Naturalista',
+    location_name: 'Playa Blanca, Punta Leona',
+    province: 'Puntarenas',
+    region: 'Pacífico Central',
+    fuzzy_lat: 9.712,
+    fuzzy_lng: -84.654,
+    image: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=800&q=80',
+    timestamp: 'Hace 3 días',
+    notes: 'Pareja volando en perfecta sincronía sobre los almendros costeros.',
+    likes: 58,
+    liked_by_user: false,
+    is_verified: true,
+    is_vulnerable: false,
+    comments: []
+  },
+  {
+    id: 'sight-5',
+    specie_id: 'fauna-9',
+    specie_name: 'Pinzón de la Isla del Coco',
+    user_id: 'usr-5',
+    user_name: 'Dr. Randall Morales',
+    user_avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
+    user_role: 'Ornitólogo de Campo',
+    location_name: 'Bahía Wafer, P.N. Isla del Coco',
+    province: 'Puntarenas',
+    region: 'Pacífico Sur',
+    fuzzy_lat: 5.532,
+    fuzzy_lng: -87.058,
+    image: 'https://images.unsplash.com/photo-1522926197415-e55c22c88c71?auto=format&fit=crop&w=800&q=80',
+    timestamp: 'Hace 4 días',
+    notes: 'Ejemplar endémico buscando néctar en flores de Clusia rosea durante expedición científica.',
+    likes: 114,
+    liked_by_user: true,
+    is_verified: true,
+    is_vulnerable: true,
+    comments: [
+      {
+        id: 'c-5',
+        user_id: 'usr-2',
+        user_name: 'Carlos Solano B.',
+        user_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+        comment: '¡Un verdadero tesoro evolutivo! Gracias por documentar la Isla del Coco.',
+        created_at: 'Hace 3 días'
+      }
+    ]
   }
 ];
 
@@ -437,8 +1105,18 @@ export const MOCK_FERRIES: FerryDeparture[] = [
     terminal: 'Muelle de Puntarenas (Terminal Tambor)',
     passenger_fee_usd: 1.65, // ~850 CRC
     car_fee_usd: 24.50, // ~12,700 CRC
-    notes_es: 'Conecta con Santa Teresa, Montezuma, Malpaís y Tambor.',
-    notes_en: 'Connects to Santa Teresa, Montezuma, Malpais and Tambor.',
+    booking_url: 'https://www.quickpaycr.com',
+    daily_schedule: ['04:00 AM', '06:30 AM', '09:00 AM', '12:30 PM', '03:00 PM', '06:00 PM', '08:30 PM'],
+    fares: [
+      { category_name_es: 'Vehículo Liviano / 4x4', category_name_en: 'Standard Car / SUV', fee_crc: 12700, fee_usd: 24.50, icon: 'Car' },
+      { category_name_es: 'Motocicleta', category_name_en: 'Motorcycle', fee_crc: 3750, fee_usd: 7.25, icon: 'Bike' },
+      { category_name_es: 'Pasajero Adulto', category_name_en: 'Adult Passenger', fee_crc: 850, fee_usd: 1.65, icon: 'User' },
+      { category_name_es: 'Niño (3-12 años)', category_name_en: 'Child (3-12 yrs)', fee_crc: 450, fee_usd: 0.90, icon: 'UserCheck' },
+      { category_name_es: 'Adulto Mayor (Cédula CR)', category_name_en: 'Senior Citizen (CR ID)', fee_crc: 0, fee_usd: 0.00, notes_es: 'Exonerado por Ley 7935', icon: 'ShieldCheck' },
+      { category_name_es: 'Bicicleta', category_name_en: 'Bicycle', fee_crc: 1200, fee_usd: 2.30, icon: 'Compass' }
+    ],
+    notes_es: 'Recomendación: Llegar 45 a 60 minutos antes con tiquete digital comprado en QuickPayCR para garantizar espacio vehicular.',
+    notes_en: 'Advisory: Arrive 45-60 minutes prior with digital ticket from QuickPayCR to secure vehicle bay.',
   },
   {
     route: 'Puntarenas ⇄ Playa Naranjo',
@@ -449,8 +1127,17 @@ export const MOCK_FERRIES: FerryDeparture[] = [
     terminal: 'Muelle Barrio El Carmen, Puntarenas',
     passenger_fee_usd: 1.80,
     car_fee_usd: 23.00,
-    notes_es: 'Ruta directa a Nicoya, Samara y Nosara.',
-    notes_en: 'Direct route to Nicoya, Samara and Nosara beaches.',
+    booking_url: 'https://boleteriacoonatramar.com',
+    daily_schedule: ['06:30 AM', '10:00 AM', '02:30 PM', '07:30 PM'],
+    fares: [
+      { category_name_es: 'Vehículo Liviano', category_name_en: 'Standard Car', fee_crc: 11900, fee_usd: 23.00, icon: 'Car' },
+      { category_name_es: 'Motocicleta', category_name_en: 'Motorcycle', fee_crc: 3500, fee_usd: 6.75, icon: 'Bike' },
+      { category_name_es: 'Pasajero Adulto', category_name_en: 'Adult Passenger', fee_crc: 900, fee_usd: 1.75, icon: 'User' },
+      { category_name_es: 'Niño', category_name_en: 'Child', fee_crc: 500, fee_usd: 1.00, icon: 'UserCheck' },
+      { category_name_es: 'Adulto Mayor (CR)', category_name_en: 'Senior Citizen (CR)', fee_crc: 0, fee_usd: 0.00, icon: 'ShieldCheck' },
+    ],
+    notes_es: 'Ruta directa hacia Nicoya, Hojancha, Samara y Nosara. Compra anticipada recomendada en boleteriacoonatramar.com.',
+    notes_en: 'Direct route to Nicoya, Samara, and Nosara. Online ticket booking recommended.',
   },
   {
     route: 'Golfito ⇄ Puerto Jiménez',
@@ -461,12 +1148,32 @@ export const MOCK_FERRIES: FerryDeparture[] = [
     terminal: 'Muelle Municipal de Golfito',
     passenger_fee_usd: 6.00,
     car_fee_usd: 0, // Solo peatonal
-    notes_es: 'Cruza el fiordo tropical del Golfo Dulce. Solo pasajeros.',
-    notes_en: 'Scenic tropical fjord crossing. Passenger only.',
+    booking_url: 'https://visitpuertojimenez.cr',
+    daily_schedule: ['06:00 AM', '11:30 AM', '01:30 PM', '03:30 PM'],
+    fares: [
+      { category_name_es: 'Pasajero General', category_name_en: 'General Passenger', fee_crc: 3100, fee_usd: 6.00, icon: 'User' },
+      { category_name_es: 'Equipaje Pesado / Surfboard', category_name_en: 'Heavy Luggage / Board', fee_crc: 1500, fee_usd: 3.00, icon: 'Compass' }
+    ],
+    notes_es: 'Cruza el fiordo tropical del Golfo Dulce hacia la Península de Osa y Corcovado. Solo pasajeros y equipaje.',
+    notes_en: 'Scenic tropical fjord crossing into the Osa Peninsula. Passenger & luggage only.',
   }
 ];
 
 export const MOCK_TIDES: CIMARTideData[] = [
+  {
+    beach: 'Playa Uvita (P.N. Marino Ballena)',
+    region: 'Pacífico Sur',
+    high_tide: '04:15 PM (2.9m)',
+    low_tide: '10:05 AM (0.2m)',
+    swell_meters: 1.4,
+    water_temp_c: 29.0,
+    surf_condition: 'Excelente',
+    is_coastal_hazard: true,
+    hazard_warning_es: '⚠️ Paso de Moisés (Cola de Ballena): Queda totalmente sumergido durante pleamar (> 2.0m). Cruce solo en bajamar.',
+    hazard_warning_en: "⚠️ Whale's Tail Sandbar: Completely submerged during high tide (> 2.0m). Walk only at low tide.",
+    safe_window_es: 'Ventana segura: 08:00 AM - 12:00 PM',
+    safe_window_en: 'Safe window: 08:00 AM - 12:00 PM'
+  },
   {
     beach: 'Playa Jacó / Hermosa',
     region: 'Pacífico Central',
@@ -593,3 +1300,180 @@ export const MOCK_ROAD_ALERTS: RoadAlert[] = [
     alternate_route_en: 'Aguacate Mountain road (Route 3)',
   }
 ];
+
+export const MOCK_EMERGENCY_PHONES: EmergencyPhone[] = [
+  {
+    id: 'em-911',
+    name_es: 'Sistema Nacional de Emergencias',
+    name_en: 'National Emergency Dispatch',
+    phone: '911',
+    phone_display: '9-1-1',
+    description_es: 'Atención integral inmediata de ambulancia, policía, bomberos y rescate acuático en todo el territorio nacional.',
+    description_en: 'Immediate nationwide dispatch for medical, police, fire, and aquatic rescue emergencies.',
+    category: 'policia',
+    is_toll_free: true,
+    badge: '24/7 Gratis'
+  },
+  {
+    id: 'em-oij',
+    name_es: 'OIJ - Subcomisión de Seguridad Turística',
+    name_en: 'OIJ Tourist Safety Commission',
+    phone: '8008000645',
+    phone_display: '800-8000-645 / WhatsApp 8800-0645',
+    description_es: 'Línea directa confidencial de investigación judicial especializada en atención, denuncias y protección a turistas.',
+    description_en: 'Confidential judicial police hotline dedicated to tourist safety, report filing, and protection.',
+    category: 'turismo',
+    is_toll_free: true,
+    badge: 'Confidencial'
+  },
+  {
+    id: 'em-pol-tur',
+    name_es: 'Policía Turística (Fuerza Pública)',
+    name_en: 'Tourist Police Division',
+    phone: '+50622582508',
+    phone_display: '+506 2258-2508',
+    description_es: 'Cuerpo policial bilingüe con destacamentos en playas, parques nacionales y principales destinos turísticos.',
+    description_en: 'Bilingual police corps deployed across key national parks, beaches, and tourist hot spots.',
+    category: 'turismo'
+  },
+  {
+    id: 'em-cruzroja',
+    name_es: 'Cruz Roja Costarricense',
+    name_en: 'Costa Rican Red Cross',
+    phone: '1322',
+    phone_display: '1322 / 9-1-1',
+    description_es: 'Rescate de montaña, primeros auxilios en senderos, ambulancias y guardavidas en playas habilitadas.',
+    description_en: 'Mountain rescue, trail first aid, ambulances, and lifeguards on designated beaches.',
+    category: 'medica'
+  },
+  {
+    id: 'em-bomberos',
+    name_es: 'Cuerpo de Bomberos de Costa Rica',
+    name_en: 'National Firefighters Corps',
+    phone: '118',
+    phone_display: '118 / 9-1-1',
+    description_es: 'Control de incendios forestales, rescate en accidentes vehiculares e incidentes con materiales peligrosos.',
+    description_en: 'Wildfire control, vehicular rescue, and hazardous materials response.',
+    category: 'bomberos'
+  },
+  {
+    id: 'em-transito',
+    name_es: 'Policía de Tránsito (MOPT)',
+    name_en: 'Highway Traffic Police (MOPT)',
+    phone: '+50622577798',
+    phone_display: '+506 2257-7798',
+    description_es: 'Asistencia vial, accidentes de tránsito en carretera y verificación de regulaciones de conducción.',
+    description_en: 'Roadside assistance, highway collision reports, and driver regulations verification.',
+    category: 'transito'
+  },
+  {
+    id: 'em-sinac',
+    name_es: 'SINAC - Emergencias en Parques',
+    name_en: 'SINAC National Parks Emergency',
+    phone: '1192',
+    phone_display: '1192 / +506 2522-6500',
+    description_es: 'Reporte de extravío en senderos silvestres, caza furtiva y contingencias ambientales.',
+    description_en: 'Trail lost person reporting, wildlife poaching alerts, and environmental issues.',
+    category: 'parques'
+  }
+];
+
+export const MOCK_EMBASSIES: EmbassyContact[] = [
+  {
+    id: 'emb-usa',
+    country_es: 'Estados Unidos',
+    country_en: 'United States',
+    flag_emoji: '🇺🇸',
+    address: 'Calle 98, Vía 104, Pavas, San José',
+    phone_office: '+506 2519-2000',
+    phone_emergency_24h: '+506 2519-2000 (Presionar 0)',
+    email: 'ACSSanJose@state.gov',
+    website: 'https://cr.usembassy.gov',
+    visiting_hours: 'Lun - Vie: 8:00 AM - 4:30 PM (Cita previa)'
+  },
+  {
+    id: 'emb-can',
+    country_es: 'Canadá',
+    country_en: 'Canada',
+    flag_emoji: '🇨🇦',
+    address: 'Oficentro Ejecutivo La Sabana, Edificio 5, Piso 3, San José',
+    phone_office: '+506 2242-4400',
+    phone_emergency_24h: '+1 613 996 8885 (Ottawa SOS)',
+    email: 'sjose@international.gc.ca',
+    website: 'https://www.international.gc.ca',
+    visiting_hours: 'Lun - Jue: 8:00 AM - 12:00 PM'
+  },
+  {
+    id: 'emb-esp',
+    country_es: 'España',
+    country_en: 'Spain',
+    flag_emoji: '🇪🇸',
+    address: 'Calle 32, entre Paseo Colón y Avenida 2, San José',
+    phone_office: '+506 2225-7570',
+    phone_emergency_24h: '+506 8863-3892 (Emergencia Consular 24h)',
+    email: 'emb.sanjose@maec.es',
+    website: 'https://exteriores.gob.es/embajadas/sanjose',
+    visiting_hours: 'Lun - Vie: 8:30 AM - 1:00 PM'
+  },
+  {
+    id: 'emb-deu',
+    country_es: 'Alemania',
+    country_en: 'Germany',
+    flag_emoji: '🇩🇪',
+    address: 'Torre La Sabana, Piso 8, Sabana Norte, San José',
+    phone_office: '+506 2290-9000',
+    phone_emergency_24h: '+506 8381-7968',
+    email: 'info@san-jose.diplo.de',
+    website: 'https://san-jose.diplo.de',
+    visiting_hours: 'Lun - Vie: 9:00 AM - 12:00 PM'
+  },
+  {
+    id: 'emb-fra',
+    country_es: 'Francia',
+    country_en: 'France',
+    flag_emoji: '🇫🇷',
+    address: 'Curridabat, 200m sur y 25m este de la Plaza del Sol, San José',
+    phone_office: '+506 2234-4167',
+    phone_emergency_24h: '+506 8821-4200',
+    email: 'consulat.san-jose-amba@diplomatie.gouv.fr',
+    website: 'https://cr.ambafrance.org',
+    visiting_hours: 'Lun - Vie: 8:00 AM - 12:30 PM'
+  },
+  {
+    id: 'emb-gbr',
+    country_es: 'Reino Unido',
+    country_en: 'United Kingdom',
+    flag_emoji: '🇬🇧',
+    address: 'Edificio Centro Colón, Piso 11, Paseo Colón, San José',
+    phone_office: '+506 2258-2025',
+    phone_emergency_24h: '+506 2258-2025 (Opción Emergencias)',
+    email: 'ukin.costarica@fcdo.gov.uk',
+    website: 'https://gov.uk/world/costa-rica',
+    visiting_hours: 'Lun - Jue: 8:00 AM - 4:00 PM'
+  },
+  {
+    id: 'emb-mex',
+    country_es: 'México',
+    country_en: 'Mexico',
+    flag_emoji: '🇲🇽',
+    address: 'Avenida 7, Calle 13 y 15, Los Yoses, San José',
+    phone_office: '+506 2280-5690',
+    phone_emergency_24h: '+506 8721-4444',
+    email: 'embcostarica@sre.gob.mx',
+    website: 'https://embamex.sre.gob.mx/costarica',
+    visiting_hours: 'Lun - Vie: 9:00 AM - 1:00 PM'
+  },
+  {
+    id: 'emb-col',
+    country_es: 'Colombia',
+    country_en: 'Colombia',
+    flag_emoji: '🇨🇴',
+    address: 'Barrio Dent, 300m norte del Centro Cultural Costarricense Norteamericano',
+    phone_office: '+506 2283-6871',
+    phone_emergency_24h: '+506 8704-5111',
+    email: 'csanjose@cancilleria.gov.co',
+    website: 'https://costarica.embajada.gov.co',
+    visiting_hours: 'Lun - Vie: 8:30 AM - 1:30 PM'
+  }
+];
+
