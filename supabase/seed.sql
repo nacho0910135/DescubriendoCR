@@ -3,6 +3,10 @@
 -- 6 Regiones ICT, 128 Destinos Turísticos PostGIS, Normativas SINAC y Fauna
 -- ==============================================================================
 
+CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
+
+GRANT USAGE ON SCHEMA extensions TO postgres, anon, authenticated, service_role;
 SET search_path = public, extensions;
 
 -- 1. TIPO DE CAMBIO INICIAL
@@ -800,6 +804,8 @@ INSERT INTO public.destinations (
 ON CONFLICT (legacy_id) DO NOTHING;
 
 -- 4. NORMATIVAS Y ALERTAS SINAC
+CREATE UNIQUE INDEX IF NOT EXISTS idx_normativas_dest_unique ON public.normativas_destinos(destination_id);
+
 INSERT INTO public.normativas_destinos (
     destination_id, reserva_linea_obligatoria, guia_obligatorio,
     limite_boletos_transaccion, dia_cierre, horario_ingreso,

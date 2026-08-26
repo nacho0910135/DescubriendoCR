@@ -4,11 +4,12 @@
 -- Compatible con Supabase PostgreSQL 15+ / PostGIS 3+
 -- ==============================================================================
 
--- 1. HABILITAR EXTENSIONES POSTGRESQL & POSTGIS
-CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- 1. HABILITAR EXTENSIONES POSTGRESQL & POSTGIS EN SCHEMA extensions
+CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
 
--- Asegurar búsqueda de esquemas para PostGIS
+-- Otorgar permisos y configurar search_path
+GRANT USAGE ON SCHEMA extensions TO postgres, anon, authenticated, service_role;
 SET search_path = public, extensions;
 
 -- ==============================================================================
@@ -65,7 +66,7 @@ CREATE TABLE IF NOT EXISTS public.destinations (
     region VARCHAR(100) NOT NULL,
     category VARCHAR(100) NOT NULL DEFAULT 'Parque Nacional',
     description TEXT,
-    location GEOMETRY(Point, 4326) NOT NULL,
+    location extensions.geometry(Point, 4326) NOT NULL,
     difficulty VARCHAR(20) DEFAULT 'Moderado' CHECK (difficulty IN ('Fácil', 'Moderado', 'Difícil', 'Extremo')),
     price_national_crc NUMERIC(12, 2) DEFAULT 0.00,
     price_foreigner_usd NUMERIC(10, 2) DEFAULT 0.00,
@@ -120,7 +121,7 @@ CREATE TABLE IF NOT EXISTS public.fauna_species (
     sound_url TEXT,
     sound_name VARCHAR(100),
     image_url TEXT,
-    approx_location GEOMETRY(Point, 4326),
+    approx_location extensions.geometry(Point, 4326),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -147,7 +148,7 @@ CREATE TABLE IF NOT EXISTS public.user_fauna_sightings (
     fauna_id UUID NOT NULL REFERENCES public.fauna_species(id) ON DELETE CASCADE,
     sighting_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     notes TEXT,
-    fuzzy_location GEOMETRY(Point, 4326),
+    fuzzy_location extensions.geometry(Point, 4326),
     PRIMARY KEY (user_id, fauna_id)
 );
 
@@ -168,7 +169,7 @@ CREATE TABLE IF NOT EXISTS public.commercial_services (
     price_range VARCHAR(50) DEFAULT '$$',
     avg_price_usd NUMERIC(10, 2) DEFAULT 25.00,
     province VARCHAR(50) NOT NULL DEFAULT 'Puntarenas',
-    location GEOMETRY(Point, 4326) NOT NULL,
+    location extensions.geometry(Point, 4326) NOT NULL,
     phone_whatsapp VARCHAR(50) NOT NULL,
     external_url TEXT,
     accepts_sinpe BOOLEAN NOT NULL DEFAULT TRUE,
@@ -288,10 +289,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-    AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+-- Sincronizar trigger con auth.users si existe
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'auth' AND table_name = 'users') THEN
+        DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+        CREATE TRIGGER on_auth_user_created
+            AFTER INSERT ON auth.users
+            FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+    END IF;
+END $$;
 
 -- 8.2 TRIGGER: Actualizar automáticamente likes_count en fauna_photos
 CREATE OR REPLACE FUNCTION public.fn_update_fauna_photo_likes()
