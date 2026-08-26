@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS public.destinations (
     difficulty VARCHAR(20) DEFAULT 'Moderado' CHECK (difficulty IN ('Fácil', 'Moderado', 'Difícil', 'Extremo')),
     price_national_crc NUMERIC(12, 2) DEFAULT 0.00,
     price_foreigner_usd NUMERIC(10, 2) DEFAULT 0.00,
-    fee_type VARCHAR(50) DEFAULT 'Tarifa SINAC Oficial',
+    fee_type VARCHAR(100) DEFAULT 'Tarifa SINAC Oficial',
     sinac_restricted BOOLEAN DEFAULT FALSE,
     requires_sinac_booking BOOLEAN DEFAULT FALSE,
     sinac_booking_url TEXT,
