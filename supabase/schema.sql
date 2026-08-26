@@ -5,10 +5,8 @@
 -- ==============================================================================
 
 -- 1. HABILITAR EXTENSIONES POSTGRESQL & POSTGIS
-CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA extensions;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
-CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA extensions;
-CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Asegurar búsqueda de esquemas para PostGIS
 SET search_path = public, extensions;
@@ -71,19 +69,19 @@ CREATE TABLE IF NOT EXISTS public.destinations (
     difficulty VARCHAR(20) DEFAULT 'Moderado' CHECK (difficulty IN ('Fácil', 'Moderado', 'Difícil', 'Extremo')),
     price_national_crc NUMERIC(12, 2) DEFAULT 0.00,
     price_foreigner_usd NUMERIC(10, 2) DEFAULT 0.00,
-    fee_type VARCHAR(50) DEFAULT 'Tarifa SINAC Oficial',
+    fee_type VARCHAR(100) DEFAULT 'Tarifa SINAC Oficial',
     sinac_restricted BOOLEAN DEFAULT FALSE,
     requires_sinac_booking BOOLEAN DEFAULT FALSE,
     sinac_booking_url TEXT,
     has_high_tides_risk BOOLEAN DEFAULT FALSE,
     waze_url TEXT,
-    status VARCHAR(50) DEFAULT 'Abierto',
+    status VARCHAR(100) DEFAULT 'Abierto',
     cover_image_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Índice Espacial GIST para consultas geográficas ultrarrápidas (ST_DWithin, ST_Distance, etc.)
+-- Índice Espacial GIST para consultas geográficas ultrarrápidas
 CREATE INDEX IF NOT EXISTS idx_destinations_location ON public.destinations USING GIST(location);
 CREATE INDEX IF NOT EXISTS idx_destinations_province ON public.destinations(province);
 CREATE INDEX IF NOT EXISTS idx_destinations_region_id ON public.destinations(region_id);
@@ -99,7 +97,8 @@ CREATE TABLE IF NOT EXISTS public.normativas_destinos (
     horario_ingreso VARCHAR(100) DEFAULT '08:00 AM - 04:00 PM',
     observaciones_especiales TEXT,
     alertas_volcanicas_clima TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_normativas_destination UNIQUE (destination_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_normativas_destination_id ON public.normativas_destinos(destination_id);
@@ -249,7 +248,6 @@ CREATE INDEX IF NOT EXISTS idx_notifications_recipient ON public.notifications(r
 -- 7. VISTAS SQL (VISTA DE PROMEDIOS DE RATING)
 -- ==============================================================================
 
--- 7.1 VISTA vw_target_ratings
 CREATE OR REPLACE VIEW public.vw_target_ratings AS
 SELECT 
     target_type,
@@ -277,7 +275,10 @@ BEGIN
         NEW.id,
         COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'Explorador Tico'),
         COALESCE(NEW.raw_user_meta_data->>'avatar_url', NEW.raw_user_meta_data->>'picture', 'https://api.dicebear.com/7.x/bottts/svg?seed=' || NEW.id),
-        LOWER(SPLIT_PART(COALESCE(NEW.email, 'user_' || SUBSTRING(NEW.id::text FROM 1 FOR 8)), '@', 1)),
+        COALESCE(
+            NEW.raw_user_meta_data->>'username',
+            LOWER(REGEXP_REPLACE(SPLIT_PART(COALESCE(NEW.email, 'user'), '@', 1), '[^a-zA-Z0-9_]', '', 'g')) || '_' || SUBSTRING(REPLACE(NEW.id::text, '-', '') FROM 1 FOR 6)
+        ),
         'CRC'
     )
     ON CONFLICT (id) DO UPDATE SET
@@ -381,347 +382,155 @@ ALTER TABLE public.user_follows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- 9.1 USERS
+DROP POLICY IF EXISTS "Lectura pública de perfiles de usuario" ON public.users;
 CREATE POLICY "Lectura pública de perfiles de usuario" 
     ON public.users FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Usuarios pueden actualizar su propio perfil" ON public.users;
 CREATE POLICY "Usuarios pueden actualizar su propio perfil" 
     ON public.users FOR UPDATE USING (auth.uid() = id);
 
--- 9.2 SYSTEM_EXCHANGE_RATES (Lectura pública; Inserción por Service Role o Admin)
+-- 9.2 SYSTEM_EXCHANGE_RATES
+DROP POLICY IF EXISTS "Lectura pública de tipos de cambio" ON public.system_exchange_rates;
 CREATE POLICY "Lectura pública de tipos de cambio" 
     ON public.system_exchange_rates FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Service Role o Admins pueden insertar tipo de cambio" ON public.system_exchange_rates;
 CREATE POLICY "Service Role o Admins pueden insertar tipo de cambio" 
     ON public.system_exchange_rates FOR INSERT 
     WITH CHECK (auth.role() = 'service_role' OR EXISTS (
         SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
     ));
 
--- 9.3 REGIONES_ICT (Lectura pública)
+-- 9.3 REGIONES_ICT
+DROP POLICY IF EXISTS "Lectura pública de regiones ICT" ON public.regiones_ict;
 CREATE POLICY "Lectura pública de regiones ICT" 
     ON public.regiones_ict FOR SELECT USING (true);
 
--- 9.4 DESTINATIONS & NORMATIVAS (Lectura pública anónima; Edición por Admins)
+-- 9.4 DESTINATIONS & NORMATIVAS
+DROP POLICY IF EXISTS "Lectura pública de destinos" ON public.destinations;
 CREATE POLICY "Lectura pública de destinos" 
     ON public.destinations FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Admins pueden gestionar destinos" ON public.destinations;
 CREATE POLICY "Admins pueden gestionar destinos" 
     ON public.destinations FOR ALL 
     USING (EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'));
 
+DROP POLICY IF EXISTS "Lectura pública de normativas SINAC" ON public.normativas_destinos;
 CREATE POLICY "Lectura pública de normativas SINAC" 
     ON public.normativas_destinos FOR SELECT USING (true);
 
--- 9.5 FAUNA SPECIES (Lectura pública)
+-- 9.5 FAUNA SPECIES
+DROP POLICY IF EXISTS "Lectura pública de fauna de Costa Rica" ON public.fauna_species;
 CREATE POLICY "Lectura pública de fauna de Costa Rica" 
     ON public.fauna_species FOR SELECT USING (true);
 
--- 9.6 FAUNA PHOTOS (Lectura pública; Inserción/Edición por el autor)
+-- 9.6 FAUNA PHOTOS
+DROP POLICY IF EXISTS "Lectura pública del álbum de fotos de fauna" ON public.fauna_photos;
 CREATE POLICY "Lectura pública del álbum de fotos de fauna" 
     ON public.fauna_photos FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Usuarios autenticados pueden subir fotos de fauna" ON public.fauna_photos;
 CREATE POLICY "Usuarios autenticados pueden subir fotos de fauna" 
     ON public.fauna_photos FOR INSERT 
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Usuarios pueden eliminar sus propias fotos de fauna" ON public.fauna_photos;
 CREATE POLICY "Usuarios pueden eliminar sus propias fotos de fauna" 
     ON public.fauna_photos FOR DELETE 
     USING (auth.uid() = user_id);
 
 -- 9.7 USER FAUNA SIGHTINGS
+DROP POLICY IF EXISTS "Lectura pública de avistamientos reportados" ON public.user_fauna_sightings;
 CREATE POLICY "Lectura pública de avistamientos reportados" 
     ON public.user_fauna_sightings FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Usuarios pueden registrar sus propios avistamientos" ON public.user_fauna_sightings;
 CREATE POLICY "Usuarios pueden registrar sus propios avistamientos" 
     ON public.user_fauna_sightings FOR ALL 
     USING (auth.uid() = user_id);
 
--- 9.8 COMMERCIAL SERVICES (Directorio B2B / B2C)
+-- 9.8 COMMERCIAL SERVICES
+DROP POLICY IF EXISTS "Lectura pública de comercios y servicios turísticos" ON public.commercial_services;
 CREATE POLICY "Lectura pública de comercios y servicios turísticos" 
     ON public.commercial_services FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Comerciantes verificados pueden gestionar sus comercios" ON public.commercial_services;
 CREATE POLICY "Comerciantes verificados pueden gestionar sus comercios" 
     ON public.commercial_services FOR ALL 
     USING (auth.uid() = owner_id OR EXISTS (
         SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
     ));
 
+DROP POLICY IF EXISTS "Usuarios autenticados pueden registrar comercios pymes" ON public.commercial_services;
 CREATE POLICY "Usuarios autenticados pueden registrar comercios pymes" 
     ON public.commercial_services FOR INSERT 
     WITH CHECK (auth.uid() = owner_id);
 
 -- 9.9 REVIEWS
+DROP POLICY IF EXISTS "Lectura pública de reseñas" ON public.reviews;
 CREATE POLICY "Lectura pública de reseñas" 
     ON public.reviews FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Usuarios autenticados pueden escribir reseñas" ON public.reviews;
 CREATE POLICY "Usuarios autenticados pueden escribir reseñas" 
     ON public.reviews FOR INSERT 
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Usuarios pueden editar o borrar sus propias reseñas" ON public.reviews;
 CREATE POLICY "Usuarios pueden editar o borrar sus propias reseñas" 
     ON public.reviews FOR ALL 
     USING (auth.uid() = user_id);
 
 -- 9.10 LIKES
+DROP POLICY IF EXISTS "Lectura pública de likes" ON public.likes;
 CREATE POLICY "Lectura pública de likes" 
     ON public.likes FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Usuarios autenticados pueden dar y quitar likes" ON public.likes;
 CREATE POLICY "Usuarios autenticados pueden dar y quitar likes" 
     ON public.likes FOR ALL 
     USING (auth.uid() = user_id);
 
 -- 9.11 USER FOLLOWS
+DROP POLICY IF EXISTS "Lectura pública de seguidores" ON public.user_follows;
 CREATE POLICY "Lectura pública de seguidores" 
     ON public.user_follows FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Usuarios autenticados pueden seguir o dejar de seguir" ON public.user_follows;
 CREATE POLICY "Usuarios autenticados pueden seguir o dejar de seguir" 
     ON public.user_follows FOR ALL 
     USING (auth.uid() = follower_id);
 
 -- 9.12 NOTIFICATIONS
+DROP POLICY IF EXISTS "Usuarios solo pueden ver sus propias notificaciones" ON public.notifications;
 CREATE POLICY "Usuarios solo pueden ver sus propias notificaciones" 
     ON public.notifications FOR SELECT 
     USING (auth.uid() = recipient_id);
 
+DROP POLICY IF EXISTS "Usuarios pueden actualizar el estado de sus notificaciones" ON public.notifications;
 CREATE POLICY "Usuarios pueden actualizar el estado de sus notificaciones" 
     ON public.notifications FOR UPDATE 
     USING (auth.uid() = recipient_id);
 
 -- ==============================================================================
--- 10. DATOS INICIALES (SEED DATA: REGIONES ICT, DESTINOS Y FAUNA CON POSTGIS)
+-- 10. DATOS BÁSICOS DEL SISTEMA (Regiones ICT y Tipo de Cambio)
+-- Para poblar los 128 destinos y catálogo de fauna completo, ejecute 'supabase/seed.sql'
 -- ==============================================================================
 
--- 10.1 Regiones ICT
 INSERT INTO public.regiones_ict (id, nombre_region, provincia, descripcion) VALUES
-(1, 'Valle Central', 'San José', 'Corazón cultural, volcanes Poás e Irazú y ciudades coloniales'),
-(2, 'Guanacaste', 'Guanacaste', 'Playas doradas del Pacífico Norte, sabanas y Parques Nacionales Rincón de la Vieja y Santa Rosa'),
-(3, 'Llanuras del Norte', 'Alajuela', 'Volcán Arenal, aguas termales de La Fortuna y refugios Caño Negro'),
-(4, 'Pacífico Central', 'Puntarenas', 'Manuel Antonio, Parque Nacional Carara y avistamiento de lapas rojas'),
-(5, 'Pacífico Sur', 'Puntarenas', 'Península de Osa, Parque Nacional Corcovado y Bahía Ballena'),
-(6, 'Caribe', 'Limón', 'Tortuguero, Puerto Viejo de Talamanca, arrecifes de Cahuita y cultura afrocaribeña')
-ON CONFLICT (id) DO NOTHING;
+(1, 'Valle Central', 'San José', 'Corazón histórico, cultural y volcanes centrales Poás, Irazú, Barva y Turrialba'),
+(2, 'Guanacaste', 'Guanacaste', 'Playas doradas del Pacífico Norte, sabanas, Bosque Tropical Seco y cordillera volcánica'),
+(3, 'Pacífico Medio', 'Puntarenas', 'Playas de surf, Parque Nacional Manuel Antonio, Marino Ballena y manglares de Quepos'),
+(4, 'Puntarenas y Golfo de Nicoya', 'Puntarenas', 'Península de Nicoya (Montezuma, Santa Teresa), islas del golfo y Península de Osa / Corcovado'),
+(5, 'Caribe', 'Limón', 'Tortuguero, canales fluviales, arrecifes de Cahuita, Gandoca-Manzanillo y cultura afrocostarricense y bribri'),
+(6, 'Zona Norte', 'Alajuela', 'Volcán Arenal, llanuras de San Carlos, Río Celeste, cavernas de Venado y humedal Caño Negro')
+ON CONFLICT (id) DO UPDATE SET
+    nombre_region = EXCLUDED.nombre_region,
+    provincia = EXCLUDED.provincia,
+    descripcion = EXCLUDED.descripcion;
 
--- 10.2 Tipo de cambio inicial
 INSERT INTO public.system_exchange_rates (rate_buy, rate_sell, source)
-VALUES (504.50, 517.80, 'BCCR Oficial')
-ON CONFLICT DO NOTHING;
-
--- 10.3 Destinos y Parques Nacionales con PostGIS (SRID 4326: ST_SetSRID(ST_MakePoint(lng, lat), 4326))
-INSERT INTO public.destinations (
-    legacy_id, name, region_id, province, region, category, description,
-    location, difficulty, price_national_crc, price_foreigner_usd,
-    fee_type, sinac_restricted, requires_sinac_booking, sinac_booking_url,
-    has_high_tides_risk, waze_url, status, cover_image_url
-) VALUES 
-(
-    1,
-    'Parque Nacional Manuel Antonio',
-    4,
-    'Puntarenas',
-    'Pacífico Central',
-    'Parque Nacional',
-    'El parque más visitado del país con playas de arena blanca, senderos de selva tropical, monos cariblancos y perezosos.',
-    ST_SetSRID(ST_MakePoint(-84.1432, 9.3893), 4326),
-    'Fácil',
-    1800.00,
-    18.00,
-    'Tarifa SINAC Oficial',
-    TRUE,
-    TRUE,
-    'https://serviciosenlinea.sinac.go.cr/',
-    FALSE,
-    'https://waze.com/ul?ll=9.3893,-84.1432&navigate=yes',
-    'Abierto (Cierra Martes)',
-    'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=1200&q=80'
-),
-(
-    2,
-    'Parque Nacional Volcán Arenal',
-    3,
-    'Alajuela',
-    'Llanuras del Norte',
-    'Volcán & Aguas Termales',
-    'Imponente cono volcánico perfecto rodeado de coladas de lava de 1968 y 1992, bosque lluvioso y aguas termales.',
-    ST_SetSRID(ST_MakePoint(-84.6963, 10.4628), 4326),
-    'Moderado',
-    1130.00,
-    16.95,
-    'Tarifa SINAC Oficial',
-    FALSE,
-    FALSE,
-    'https://serviciosenlinea.sinac.go.cr/',
-    FALSE,
-    'https://waze.com/ul?ll=10.4628,-84.6963&navigate=yes',
-    'Abierto Diario',
-    'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80'
-),
-(
-    3,
-    'Parque Nacional Corcovado (Estación Sirena)',
-    5,
-    'Puntarenas',
-    'Pacífico Sur',
-    'Reserva Biológica Extrema',
-    'Considerado por National Geographic como el lugar biológicamente más intenso del planeta, hogar de dantas, jaguares y 4 especies de monos.',
-    ST_SetSRID(ST_MakePoint(-83.5900, 8.4800), 4326),
-    'Difícil',
-    2260.00,
-    33.90,
-    'SINAC + Guía ICT Obligatorio',
-    TRUE,
-    TRUE,
-    'https://serviciosenlinea.sinac.go.cr/',
-    TRUE,
-    'https://waze.com/ul?ll=8.4800,-83.5900&navigate=yes',
-    'Abierto (Acceso con Guía)',
-    'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=80'
-),
-(
-    4,
-    'Parque Nacional Cahuita & Punta Vargas',
-    6,
-    'Limón',
-    'Caribe',
-    'Arrecife Coralino & Playa',
-    'El arrecife de coral más grande del Caribe costarricense junto a senderos costeros bordeados de palmeras y monos congo.',
-    ST_SetSRID(ST_MakePoint(-82.8450, 9.7360), 4326),
-    'Fácil',
-    0.00,
-    5.00,
-    'Donación Voluntaria Comunidad',
-    FALSE,
-    FALSE,
-    NULL,
-    TRUE,
-    'https://waze.com/ul?ll=9.7360,-82.8450&navigate=yes',
-    'Abierto Diario',
-    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80'
-)
-ON CONFLICT (legacy_id) DO NOTHING;
-
--- 10.4 Normativas de Destinos
-INSERT INTO public.normativas_destinos (
-    destination_id, reserva_linea_obligatoria, guia_obligatorio,
-    limite_boletos_transaccion, dia_cierre, horario_ingreso,
-    observaciones_especiales, alertas_volcanicas_clima
-)
-SELECT 
-    id,
-    requires_sinac_booking,
-    sinac_restricted,
-    6,
-    CASE WHEN name LIKE '%Manuel Antonio%' THEN 'Martes' ELSE 'Ninguno' END,
-    '07:00 AM - 04:00 PM',
-    'Prohibido el ingreso de plásticos de un solo uso y alimentos a áreas de playa.',
-    'Verificar pronóstico de lluvias IMN antes de ingresar.'
-FROM public.destinations
-ON CONFLICT DO NOTHING;
-
--- 10.5 Fauna de Costa Rica
-INSERT INTO public.fauna_species (
-    common_name_es, common_name_en, scientific_name, category,
-    description, habitat, vulnerability_status, sound_url, sound_name, image_url,
-    approx_location
-) VALUES
-(
-    'Rana Calzonuda de Ojos Rojos',
-    'Red-eyed Tree Frog',
-    'Agalychnis callidryas',
-    'anfibios',
-    'Emblemática rana nocturna de Costa Rica con vívidos ojos escarlata, flancos azules y patas anaranjadas.',
-    'Hojas de árboles cerca de charcas temporales en bosques húmedos tropicales.',
-    'Preocupación Menor (LC)',
-    'https://assets.mixkit.co/active_storage/sfx/2416/2416-preview.mp3',
-    'Choc-choc nocturno tropical',
-    'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
-    ST_SetSRID(ST_MakePoint(-84.0500, 10.3500), 4326)
-),
-(
-    'Perezoso de Tres Dedos',
-    'Three-toed Sloth',
-    'Bradypus variegatus',
-    'mamiferos',
-    'Mamífero arbóreo folívoro que pasa el 90% de su vida colgado en las copas de los árboles de Cecropia (guarumo).',
-    'Dosel del bosque tropical lluvioso y nuboso desde el nivel del mar hasta 1,800m.',
-    'Preocupación Menor (LC)',
-    NULL,
-    'Resoplido agudo en el dosel',
-    'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
-    ST_SetSRID(ST_MakePoint(-84.1432, 9.3893), 4326)
-),
-(
-    'Lapa Roja / Guacamaya',
-    'Scarlet Macaw',
-    'Ara macao',
-    'aves',
-    'Majestuosa ave neotropical monógama con deslumbrante plumaje rojo, amarillo y azul.',
-    'Bosques costeros del Pacífico Central y Península de Osa, alimentándose de almendro de playa.',
-    'Preocupación Menor (LC)',
-    NULL,
-    'Grajido estrepitoso en vuelo',
-    'https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=800&q=80',
-    ST_SetSRID(ST_MakePoint(-84.6000, 9.7000), 4326)
-),
-(
-    'Ballena Jorobada',
-    'Humpback Whale',
-    'Megaptera novaeangliae',
-    'marino',
-    'Cetáceo migratorio que visita Costa Rica tanto del hemisferio norte como del sur para dar a luz en el Golfo Dulce y Marino Ballena.',
-    'Aguas cálidas del Pacífico tropical (Uvita, Golfo de Nicoya y Golfo Dulce).',
-    'Preocupación Menor (LC)',
-    NULL,
-    'Canto submarino de baja frecuencia',
-    'https://images.unsplash.com/photo-1568430462989-44163eb1752f?auto=format&fit=crop&w=800&q=80',
-    ST_SetSRID(ST_MakePoint(-83.7500, 9.1500), 4326)
-)
-ON CONFLICT (scientific_name) DO NOTHING;
-
--- 10.6 Servicios Comerciales y Eco-Lodges ICT
-INSERT INTO public.commercial_services (
-    main_category, subcategory, title, description, price_range, avg_price_usd,
-    province, location, phone_whatsapp, external_url,
-    accepts_sinpe, accepts_cards, pet_friendly, is_verified_ict, cst_stars,
-    is_sponsored, sponsored_tier, photos
-) VALUES 
-(
-    'eco_lodge',
-    'Lodge Autosostenible',
-    'Lapa Rios Rainforest Lodge',
-    'Eco-lodge pionero en la Península de Osa con certificación 5 Hojas CST de Sostenibilidad y vistas al Golfo Dulce.',
-    '$$$$',
-    380.00,
-    'Puntarenas',
-    ST_SetSRID(ST_MakePoint(-83.5200, 8.4100), 4326),
-    '+50670001122',
-    'https://laparios.com',
-    TRUE,
-    TRUE,
-    FALSE,
-    TRUE,
-    5,
-    TRUE,
-    1,
-    ARRAY['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80']
-),
-(
-    'soda_restaurante',
-    'Gastronomía Costarricense',
-    'Soda La Parada - Tradición Guanacasteca',
-    'Auténtica comida tica con gallo pinto, casados con picadillos criollos y tortillas de maíz palmeadas a mano.',
-    '$',
-    8.50,
-    'Guanacaste',
-    ST_SetSRID(ST_MakePoint(-85.4500, 10.3000), 4326),
-    '+50688997766',
-    NULL,
-    TRUE,
-    TRUE,
-    TRUE,
-    TRUE,
-    4,
-    FALSE,
-    0,
-    ARRAY['https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80']
-)
+VALUES (505.00, 512.00, 'BCCR Oficial / Inicial')
 ON CONFLICT DO NOTHING;

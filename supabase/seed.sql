@@ -833,7 +833,14 @@ SELECT
         ELSE 'Verificar pronóstico del Instituto Meteorológico Nacional (IMN).'
     END
 FROM public.destinations d
-ON CONFLICT DO NOTHING;
+ON CONFLICT (destination_id) DO UPDATE SET
+    reserva_linea_obligatoria = EXCLUDED.reserva_linea_obligatoria,
+    guia_obligatorio = EXCLUDED.guia_obligatorio,
+    limite_boletos_transaccion = EXCLUDED.limite_boletos_transaccion,
+    dia_cierre = EXCLUDED.dia_cierre,
+    horario_ingreso = EXCLUDED.horario_ingreso,
+    observaciones_especiales = EXCLUDED.observaciones_especiales,
+    alertas_volcanicas_clima = EXCLUDED.alertas_volcanicas_clima;
 
 -- 5. CATÁLOGO DE FAUNA DE COSTA RICA CON POSTGIS
 INSERT INTO public.fauna_species (
@@ -872,7 +879,7 @@ INSERT INTO public.fauna_species (
     'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80', ST_SetSRID(ST_MakePoint(-83.59, 8.48), 4326)
   ),
 (
-    'Danta o Tapir Centroamericano', 'Baird's Tapir', 'Tapirus bairdii', 'mamiferos',
+    'Danta o Tapir Centroamericano', 'Baird''s Tapir', 'Tapirus bairdii', 'mamiferos',
     'El mamífero terrestre autóctono más grande de los neotrópicos, excelente nadador y jardinero clave del bosque.', 'Selvas húmedas y pantanosas de Corcovado, Tapantí y Parque Nacional Braulio Carrillo.', 'En Peligro (EN)', NULL, 'Silbido agudo entre matorrales',
     'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80', ST_SetSRID(ST_MakePoint(-83.56, 8.52), 4326)
   ),
