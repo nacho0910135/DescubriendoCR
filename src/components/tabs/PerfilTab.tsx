@@ -53,7 +53,8 @@ export const PerfilTab: React.FC = () => {
 
   // User sightings
   const userSightings = sightings.filter(s => 
-    s.user_name.includes(userProfile?.full_name || 'Explorador') || s.id.startsWith('sight-')
+    (s.user_name || s.author_name || '').toLowerCase().includes((userProfile?.full_name || 'Explorador').toLowerCase()) || 
+    s.id.startsWith('sight-')
   );
 
   // Claimed or manageable B2B commerces

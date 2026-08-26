@@ -6,18 +6,29 @@ import {
   TabType, 
   PlaceSpot, 
   FaunaSpecie, 
+  VerifiedSanctuary,
   ICTCommerce, 
   CommunitySighting,
+  UserSeenFaunaRecord,
   ExchangeRate
 } from '../types';
 import { 
   MOCK_PLACES, 
   MOCK_FAUNA, 
+  MOCK_SANCTUARIES,
   MOCK_COMMERCES, 
   MOCK_COMMUNITY_SIGHTINGS, 
   INITIAL_EXCHANGE_RATE 
 } from '../data/mockData';
-import { supabase, SupabaseUserProfile, getOrCreateUserProfile } from '../lib/supabase';
+import { 
+  supabase, 
+  SupabaseUserProfile, 
+  getOrCreateUserProfile,
+  uploadFaunaPhotoToStorage,
+  recordUserFaunaSightingInDB,
+  toggleLikeInDB,
+  toggleFollowUserInDB
+} from '../lib/supabase';
 import confetti from 'canvas-confetti';
 
 interface AuthModalConfig {
@@ -62,13 +73,26 @@ interface AppContextType {
   // App Data & Interactive State
   places: PlaceSpot[];
   fauna: FaunaSpecie[];
+  sanctuaries: VerifiedSanctuary[];
   commerces: ICTCommerce[];
   sightings: CommunitySighting[];
   favorites: string[]; // place IDs
+  userSeenFauna: UserSeenFaunaRecord[];
+  followedUsers: string[]; // User IDs followed
+  
   toggleFavoritePlace: (placeId: string) => void;
   likePlace: (placeId: string) => void;
   likeSighting: (sightingId: string) => void;
+  toggleMarkAsSeenFauna: (faunaId: string, notes?: string) => void;
+  isFaunaSeenByUser: (faunaId: string) => boolean;
+  toggleFollowUser: (userId: string, userName?: string) => void;
+  isUserFollowed: (userId: string) => boolean;
+  addSightingComment: (sightingId: string, commentText: string) => void;
   addCommunitySighting: (newSighting: Omit<CommunitySighting, 'id' | 'likes' | 'timestamp' | 'is_verified'>) => void;
+  uploadAndPublishSighting: (
+    data: Omit<CommunitySighting, 'id' | 'likes' | 'timestamp' | 'is_verified'>, 
+    file?: File | Blob
+  ) => Promise<boolean>;
   claimCommerce: (commerceId: string, legalName: string, phone: string) => boolean;
   
   // Modal Overlays
@@ -76,6 +100,8 @@ interface AppContextType {
   setSelectedPlace: (place: PlaceSpot | null) => void;
   selectedFauna: FaunaSpecie | null;
   setSelectedFauna: (fauna: FaunaSpecie | null) => void;
+  selectedSanctuary: VerifiedSanctuary | null;
+  setSelectedSanctuary: (sanc: VerifiedSanctuary | null) => void;
   selectedCommerce: ICTCommerce | null;
   setSelectedCommerce: (commerce: ICTCommerce | null) => void;
   isNewSightingModalOpen: boolean;
@@ -334,14 +360,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Data state
   const [places, setPlaces] = useState<PlaceSpot[]>(MOCK_PLACES);
   const [fauna] = useState<FaunaSpecie[]>(MOCK_FAUNA);
+  const [sanctuaries] = useState<VerifiedSanctuary[]>(MOCK_SANCTUARIES);
   const [commerces, setCommerces] = useState<ICTCommerce[]>(MOCK_COMMERCES);
   const [sightings, setSightings] = useState<CommunitySighting[]>(MOCK_COMMUNITY_SIGHTINGS);
   const [favorites, setFavorites] = useState<string[]>(['spot-1', 'spot-3']);
+  const [userSeenFauna, setUserSeenFauna] = useState<UserSeenFaunaRecord[]>([
+    { specie_id: 'fauna-3', specie_name: 'Perezoso de Tres Dedos', seen_date: '2025-01-14', location: 'Manuel Antonio' },
+    { specie_id: 'fauna-12', specie_name: 'Yigüirro', seen_date: '2025-02-01', location: 'Valle Central' }
+  ]);
+  const [followedUsers, setFollowedUsers] = useState<string[]>(['usr-1', 'usr-2']);
   
   // Modals state
   const [authModal, setAuthModal] = useState<AuthModalConfig>({ isOpen: false });
   const [selectedPlace, setSelectedPlace] = useState<PlaceSpot | null>(null);
   const [selectedFauna, setSelectedFauna] = useState<FaunaSpecie | null>(null);
+  const [selectedSanctuary, setSelectedSanctuary] = useState<VerifiedSanctuary | null>(null);
   const [selectedCommerce, setSelectedCommerce] = useState<ICTCommerce | null>(null);
   const [isNewSightingModalOpen, setIsNewSightingModalOpen] = useState<boolean>(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState<boolean>(false);
@@ -514,19 +547,133 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     requireAuth(
       language === 'es' ? 'Votar Avistamiento' : 'Upvote Sighting',
       language === 'es' ? 'Inicia sesión para apoyar a los fotógrafos de fauna.' : 'Sign in to support wildlife photographers.',
-      () => {
+      async () => {
+        let isNowLiked = false;
         setSightings(prev => prev.map(s => {
           if (s.id === sightingId) {
-            return { ...s, likes: s.likes + 1 };
+            const hasLiked = s.liked_by_user || false;
+            isNowLiked = !hasLiked;
+            return { 
+              ...s, 
+              liked_by_user: !hasLiked,
+              likes: hasLiked ? Math.max(0, s.likes - 1) : s.likes + 1 
+            };
           }
           return s;
         }));
-        showToast(language === 'es' ? '¡Gracias por apoyar este reporte!' : 'Thanks for upvoting this sighting!');
+        
+        // Sync to Supabase if connected
+        if (user?.id) {
+          toggleLikeInDB(user.id, 'sighting', sightingId).catch(err => console.log('Like DB sync note:', err));
+        }
+
+        if (isNowLiked) {
+          confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 } });
+          showToast(language === 'es' ? '¡Gracias por apoyar este reporte de fauna!' : 'Thanks for upvoting this wildlife report!');
+        }
       }
     );
   };
 
-  // Add new sighting (Auth protected)
+  // Add comment to a sighting (Auth protected)
+  const addSightingComment = (sightingId: string, commentText: string) => {
+    if (!commentText.trim()) return;
+
+    requireAuth(
+      language === 'es' ? 'Comentar Avistamiento' : 'Comment on Sighting',
+      language === 'es' ? 'Inicia sesión para participar en la discusión comunitaria.' : 'Sign in to participate in the community discussion.',
+      () => {
+        const authorName = userProfile?.full_name || user?.email?.split('@')[0] || 'Explorador CR';
+        const newComment = {
+          id: `cmt-${Date.now()}`,
+          author_id: user?.id || 'usr-me',
+          author_name: authorName,
+          author_avatar: userProfile?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+          comment: commentText.trim(),
+          timestamp: language === 'es' ? 'Hace un instante' : 'Just now'
+        };
+
+        setSightings(prev => prev.map(s => {
+          if (s.id === sightingId) {
+            return {
+              ...s,
+              comments: [...(s.comments || []), newComment]
+            };
+          }
+          return s;
+        }));
+        showToast(language === 'es' ? 'Comentario publicado con éxito' : 'Comment published successfully');
+      }
+    );
+  };
+
+  // Follow / Unfollow user photographer (Auth protected)
+  const toggleFollowUser = (targetUserId: string, targetUserName?: string) => {
+    requireAuth(
+      language === 'es' ? 'Seguir Explorador' : 'Follow Explorer',
+      language === 'es' ? 'Inicia sesión para seguir a fotógrafos y naturalistas.' : 'Sign in to follow wildlife photographers and naturalists.',
+      async () => {
+        const isCurrentlyFollowed = followedUsers.includes(targetUserId);
+        const nextList = isCurrentlyFollowed 
+          ? followedUsers.filter(id => id !== targetUserId)
+          : [...followedUsers, targetUserId];
+        
+        setFollowedUsers(nextList);
+
+        if (user?.id) {
+          toggleFollowUserInDB(user.id, targetUserId).catch(err => console.log('Follow sync note:', err));
+        }
+
+        const name = targetUserName || 'este explorador';
+        showToast(
+          isCurrentlyFollowed
+            ? (language === 'es' ? `Dejaste de seguir a ${name}` : `Unfollowed ${name}`)
+            : (language === 'es' ? `¡Ahora sigues a ${name}!` : `You are now following ${name}!`)
+        );
+      }
+    );
+  };
+
+  const isUserFollowed = (targetUserId: string): boolean => {
+    return followedUsers.includes(targetUserId);
+  };
+
+  // Life-list: mark species as seen in the wild
+  const toggleMarkAsSeenFauna = (faunaId: string, notes?: string) => {
+    requireAuth(
+      language === 'es' ? 'Mi Lista de Vida Silvestre' : 'My Wildlife Life-List',
+      language === 'es' ? 'Inicia sesión para registrar las especies que has avistado en Costa Rica.' : 'Sign in to record the species you have spotted in Costa Rica.',
+      () => {
+        const specieObj = fauna.find(f => f.id === faunaId);
+        const isSeen = userSeenFauna.some(item => item.specie_id === faunaId);
+
+        if (isSeen) {
+          setUserSeenFauna(prev => prev.filter(item => item.specie_id !== faunaId));
+          showToast(language === 'es' ? 'Especie removida de tu lista de vida' : 'Species removed from your life list');
+        } else {
+          const commonName = specieObj 
+            ? (language === 'es' ? (specieObj.common_name_es || specieObj.common_name?.es) : (specieObj.common_name_en || specieObj.common_name?.en)) 
+            : 'Especie';
+          const newRecord: UserSeenFaunaRecord = {
+            specie_id: faunaId,
+            specie_name: commonName || 'Especie CR',
+            seen_date: new Date().toISOString().split('T')[0],
+            location: (specieObj?.location_names && specieObj.location_names[0]) || 'Costa Rica',
+            notes: notes || undefined
+          };
+          setUserSeenFauna(prev => [newRecord, ...prev]);
+          confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+          showToast(language === 'es' ? '¡Especie agregada a tu lista de avistamientos!' : 'Species added to your life list!');
+        }
+      }
+    );
+  };
+
+  const isFaunaSeenByUser = (faunaId: string): boolean => {
+    return userSeenFauna.some(item => item.specie_id === faunaId);
+  };
+
+  // Add new sighting (Direct or via file upload)
   const addCommunitySighting = (newSightingData: Omit<CommunitySighting, 'id' | 'likes' | 'timestamp' | 'is_verified'>) => {
     const newEntry: CommunitySighting = {
       ...newSightingData,
@@ -534,10 +681,55 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       likes: 1,
       timestamp: language === 'es' ? 'Hace unos momentos' : 'Just now',
       is_verified: true,
+      comments: []
     };
     setSightings(prev => [newEntry, ...prev]);
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
     showToast(language === 'es' ? '¡Avistamiento registrado con éxito en el álbum!' : 'Sighting published successfully!');
+  };
+
+  // Upload photo to Supabase Storage and publish sighting
+  const uploadAndPublishSighting = async (
+    sightingData: Omit<CommunitySighting, 'id' | 'likes' | 'timestamp' | 'is_verified'>,
+    photoFile?: File | Blob
+  ): Promise<boolean> => {
+    let finalPhotoUrl = sightingData.photo_url || sightingData.image || '';
+
+    if (photoFile) {
+      showToast(language === 'es' ? 'Subiendo fotografía a Supabase Storage...' : 'Uploading photo to Supabase Storage...');
+      const uploadRes = await uploadFaunaPhotoToStorage(photoFile, `fauna_${user?.id || 'usr'}_${Date.now()}.jpg`);
+      if (uploadRes?.url) {
+        finalPhotoUrl = uploadRes.url;
+      }
+    }
+
+    const newEntry: CommunitySighting = {
+      ...sightingData,
+      image: finalPhotoUrl,
+      photo_url: finalPhotoUrl,
+      id: `sight-${Date.now()}`,
+      likes: 1,
+      timestamp: language === 'es' ? 'Hace unos momentos' : 'Just now',
+      is_verified: true,
+      comments: []
+    };
+
+    setSightings(prev => [newEntry, ...prev]);
+
+    // Also persist in Supabase if user is logged in
+    if (user?.id) {
+      recordUserFaunaSightingInDB(
+        user.id, 
+        sightingData.specie_id || sightingData.fauna_id || 'fauna-1', 
+        sightingData.notes || sightingData.description,
+        sightingData.latitude || sightingData.fuzzy_lat,
+        sightingData.longitude || sightingData.fuzzy_lng
+      ).catch(err => console.log('DB sighting record note:', err));
+    }
+
+    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+    showToast(language === 'es' ? '¡Avistamiento publicado en el álbum colaborativo!' : 'Sighting published to collaborative album!');
+    return true;
   };
 
   // Claim commerce B2B (Auth protected)
@@ -580,18 +772,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         signOutUser,
         places,
         fauna,
+        sanctuaries,
         commerces,
         sightings,
         favorites,
+        userSeenFauna,
+        followedUsers,
         toggleFavoritePlace,
         likePlace,
         likeSighting,
+        toggleMarkAsSeenFauna,
+        isFaunaSeenByUser,
+        toggleFollowUser,
+        isUserFollowed,
+        addSightingComment,
         addCommunitySighting,
+        uploadAndPublishSighting,
         claimCommerce,
         selectedPlace,
         setSelectedPlace,
         selectedFauna,
         setSelectedFauna,
+        selectedSanctuary,
+        setSelectedSanctuary,
         selectedCommerce,
         setSelectedCommerce,
         isNewSightingModalOpen,

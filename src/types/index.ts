@@ -55,43 +55,127 @@ export interface FaunaSpecie {
   id: string;
   common_name_es: string;
   common_name_en: string;
+  common_name?: { es: string; en: string };
   scientific_name: string;
-  category: 'anfibios' | 'aves' | 'mamiferos' | 'reptiles' | 'marino';
-  iucn_status: 'CR' | 'EN' | 'VU' | 'NT' | 'LC'; // Critically Endangered, Endangered, Vulnerable, Near Threatened, Least Concern
+  category: 'anfibios' | 'aves' | 'mamiferos' | 'reptiles' | 'marino' | 'insectos' | string;
+  classification_tag?: 'tours' | 'endemica' | 'simbolos' | 'santuarios';
+  is_endemic?: boolean;
+  is_national_symbol?: boolean;
+  is_tour_observable?: boolean;
+  observable_in_tours?: boolean;
+  national_symbol_law?: string; // e.g., "Ley N° 9997 (2021)"
+  iucn_status: 'CR' | 'EN' | 'VU' | 'NT' | 'LC' | string; // Critically Endangered, Endangered, Vulnerable, Near Threatened, Least Concern
+  conservation_status?: string;
   description_es: string;
   description_en: string;
+  description?: { es: string; en: string };
   image: string;
-  habitat_es: string;
-  habitat_en: string;
-  elevation_range: string;
-  best_places: string[];
+  image_url?: string;
+  gallery?: string[];
+  habitat_es?: string;
+  habitat_en?: string;
+  elevation_range?: string;
+  best_places?: string[];
+  location_names?: string[];
   sound_name: string;
+  sound_url?: string;
+  anti_poaching_buffer_km?: number; // e.g. 15 km
   fuzzy_hotspots: {
     name: string;
-    region: ICTRegion;
+    region: ICTRegion | string;
     lat: number;
     lng: number;
     radius_km: number;
-    density: 'Alta' | 'Media' | 'Baja';
+    density: 'Alta' | 'Media' | 'Baja' | string;
   }[];
   sightings_count: number;
+  diet_es?: string;
+  diet_en?: string;
+  curious_fact_es?: string;
+  curious_fact_en?: string;
+}
+
+export interface VerifiedSanctuary {
+  id: string;
+  name: string;
+  province: CostaRicaProvince | string;
+  canton?: string;
+  region: ICTRegion | string;
+  location_name: string;
+  description_es: string;
+  description_en: string;
+  description?: { es: string; en: string };
+  image: string;
+  photo_url?: string;
+  species_rescued: string[];
+  featured_species?: string[];
+  mission_es: string;
+  mission_en: string;
+  permit_license?: string;
+  phone_whatsapp?: string;
+  phone?: string;
+  website: string;
+  visiting_hours: string;
+  admission_usd: number;
+  cst_certified: boolean;
+  lat: number;
+  lng: number;
+  responsible_tips_es: string[];
+  responsible_tips_en: string[];
+}
+
+export interface SightingComment {
+  id: string;
+  author_id?: string;
+  user_id?: string;
+  author_name?: string;
+  user_name?: string;
+  author_avatar?: string;
+  user_avatar?: string;
+  comment: string;
+  timestamp?: string;
+  created_at?: string;
 }
 
 export interface CommunitySighting {
   id: string;
   specie_id: string;
+  fauna_id?: string;
   specie_name: string;
-  user_name: string;
-  user_avatar: string;
+  user_id?: string;
+  user_name?: string;
+  user_avatar?: string;
+  author_id?: string;
+  author_name?: string;
+  author_avatar?: string;
+  user_role?: string;
+  location?: string;
   location_name: string;
-  region: ICTRegion;
-  fuzzy_lat: number;
-  fuzzy_lng: number;
-  image: string;
+  province?: CostaRicaProvince | string;
+  region: ICTRegion | string;
+  latitude?: number;
+  longitude?: number;
+  fuzzy_lat?: number;
+  fuzzy_lng?: number;
+  image?: string;
+  photo_url?: string;
   timestamp: string;
-  notes: string;
+  notes?: string;
+  description?: string;
   likes: number;
+  liked_by_user?: boolean;
   is_verified: boolean;
+  is_vulnerable?: boolean;
+  is_sensitive_location?: boolean;
+  comments?: SightingComment[];
+}
+
+export interface UserSeenFaunaRecord {
+  specie_id: string;
+  specie_name: string;
+  seen_date: string;
+  location: string;
+  notes?: string;
 }
 
 export interface ICTCommerce {
@@ -118,6 +202,15 @@ export interface ICTCommerce {
   claimed: boolean;
 }
 
+export interface FerryFareCategory {
+  category_name_es: string;
+  category_name_en: string;
+  fee_crc: number;
+  fee_usd: number;
+  icon?: string;
+  notes_es?: string;
+}
+
 export interface FerryDeparture {
   route: string; // "Puntarenas ⇄ Paquera"
   operator: string; // "Naviera Tambor"
@@ -127,6 +220,9 @@ export interface FerryDeparture {
   terminal: string;
   passenger_fee_usd: number;
   car_fee_usd: number;
+  booking_url?: string;
+  fares?: FerryFareCategory[];
+  daily_schedule?: string[];
   notes_es: string;
   notes_en: string;
 }
@@ -139,6 +235,111 @@ export interface CIMARTideData {
   swell_meters: number;
   water_temp_c: number;
   surf_condition: 'Excelente' | 'Bueno' | 'Picado' | 'Precaución';
+  is_coastal_hazard?: boolean;
+  hazard_warning_es?: string;
+  hazard_warning_en?: string;
+  safe_window_es?: string;
+  safe_window_en?: string;
+}
+
+export interface LiveWeatherData {
+  temp_c: number;
+  temp_max_c: number;
+  temp_min_c: number;
+  feels_like_c: number;
+  condition: string;
+  condition_description: string;
+  humidity: number;
+  uv_index: number;
+  rain_probability: number;
+  wind_kmh: number;
+  sunrise: string;
+  sunset: string;
+  icon: string;
+  is_cached?: boolean;
+  cached_at?: string;
+}
+
+export interface LiveTideData {
+  current_height_m: number;
+  tide_state: 'pleamar' | 'bajamar' | 'subiendo' | 'bajando';
+  next_high_tide: { time: string; height_m: number };
+  next_low_tide: { time: string; height_m: number };
+  is_high_tide_hazard: boolean; // Warning for sandbar/isthmus submerged
+  hazard_message_es?: string;
+  hazard_message_en?: string;
+  safe_crossing_hours_es?: string;
+  safe_crossing_hours_en?: string;
+  water_temp_c?: number;
+  swell_height_m?: number;
+  is_cached?: boolean;
+  cached_at?: string;
+}
+
+export interface EmbassyContact {
+  id: string;
+  country_es: string;
+  country_en: string;
+  flag_emoji: string;
+  ambassador?: string;
+  address: string;
+  phone_office: string;
+  phone_emergency_24h: string;
+  email: string;
+  website: string;
+  visiting_hours: string;
+}
+
+export interface EmergencyPhone {
+  id: string;
+  name_es: string;
+  name_en: string;
+  phone: string;
+  phone_display: string;
+  description_es: string;
+  description_en: string;
+  category: 'policia' | 'medica' | 'bomberos' | 'parques' | 'transito' | 'turismo';
+  is_toll_free?: boolean;
+  badge?: string;
+}
+
+export interface SmartRecommendationQuery {
+  available_time: 'half_day' | 'full_day' | 'weekend' | 'extended';
+  user_lat?: number;
+  user_lng?: number;
+  province_fallback?: CostaRicaProvince | 'todas';
+  preferred_categories: ('parque_nacional' | 'volcan' | 'catarata' | 'playa' | 'sendero' | 'reserva' | 'fauna')[];
+  budget_level: 'economic' | 'moderate' | 'luxury';
+  travel_group: 'solo' | 'couple' | 'family' | 'friends';
+}
+
+export interface RecommendationItinerary {
+  id: string;
+  title_es: string;
+  title_en: string;
+  summary_es: string;
+  summary_en: string;
+  match_score: number; // percentage
+  estimated_distance_km: number;
+  estimated_drive_time_hours: number;
+  estimated_budget_usd: number;
+  estimated_budget_crc: number;
+  weather_status_es: string;
+  stops: {
+    spot: PlaceSpot;
+    time_slot: string;
+    activity_es: string;
+    activity_en: string;
+    budget_usd: number;
+    tips_es: string;
+    tips_en: string;
+  }[];
+}
+
+export interface OfflineStoredSpot {
+  spot: PlaceSpot;
+  saved_at: string;
+  offline_notes?: string;
 }
 
 export interface WeatherForecast {
