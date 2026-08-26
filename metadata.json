@@ -1,0 +1,6 @@
+{
+  "name": "Descubriendo CR",
+  "description": "Aplicación móvil y multiplataforma de turismo, fauna y logística de Costa Rica con Supabase y arquitectura Guest-First.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
