@@ -1,13 +1,19 @@
 -- ==============================================================================
--- DESCUBRIENDO CR - SEED DATA POPULATION SCRIPT (COMPLETO)
--- 6 Regiones ICT, 128 Destinos Turísticos PostGIS, Normativas SINAC y Fauna
+-- DESCUBRIENDO CR - SEED DATA POPULATION SCRIPT (SUPABASE SQL EDITOR)
+-- Requiere haber ejecutado schema.sql (incluye PostGIS) previamente.
+-- Las fotos finales proceden de Wikimedia Commons; no se usan imágenes generadas por IA.
 -- ==============================================================================
 
 SET search_path = public, extensions;
 
 -- 1. TIPO DE CAMBIO INICIAL
 INSERT INTO public.system_exchange_rates (rate_buy, rate_sell, source, updated_at)
-VALUES (505.00, 512.00, 'BCCR Oficial / Pruebas Iniciales', NOW());
+SELECT 505.00, 512.00, 'BCCR Oficial / Pruebas Iniciales', NOW()
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM public.system_exchange_rates
+    WHERE source = 'BCCR Oficial / Pruebas Iniciales'
+);
 
 -- 2. REGIONES TURÍSTICAS OFICIALES DEL ICT (6 REGIONES)
 INSERT INTO public.regiones_ict (id, nombre_region, provincia, descripcion) VALUES
@@ -799,6 +805,73 @@ INSERT INTO public.destinations (
   )
 ON CONFLICT (legacy_id) DO NOTHING;
 
+-- Saneamiento geográfico de los destinos 77–128 con puntos de OpenStreetMap.
+UPDATE public.destinations AS d
+SET region_id = v.region_id,
+    province = v.province,
+    region = v.region,
+    category = v.category,
+    location = ST_SetSRID(ST_MakePoint(v.longitude, v.latitude), 4326)
+FROM (VALUES
+    (77, 2, 'Guanacaste', 'Guanacaste', 'Mirador de montaña', -85.8950259, 10.8721647),
+    (78, 2, 'Guanacaste', 'Guanacaste', 'Catarata', -84.9278713, 10.4180999),
+    (79, 2, 'Guanacaste', 'Guanacaste', 'Playa', -85.6751755, 9.9546799),
+    (80, 2, 'Guanacaste', 'Guanacaste', 'Refugio de vida silvestre', -85.4441518, 9.8659930),
+    (81, 2, 'Guanacaste', 'Guanacaste', 'Isla y refugio marino', -85.7089993, 11.0483453),
+    (82, 4, 'Puntarenas', 'Puntarenas y Golfo de Nicoya', 'Acuario y centro marino', -84.8274418, 9.9771546),
+    (83, 1, 'Alajuela', 'Valle Central', 'Senderismo de montaña', -84.4062432, 10.0853178),
+    (84, 2, 'Guanacaste', 'Guanacaste', 'Catarata', -85.3782739, 10.7741066),
+    (85, 2, 'Guanacaste', 'Guanacaste', 'Playa', -85.7397826, 10.0343003),
+    (86, 1, 'Alajuela', 'Valle Central', 'Catarata', -84.2789996, 10.0559019),
+    (87, 1, 'San José', 'Valle Central', 'Mirador de montaña', -84.1277761, 9.8980759),
+    (88, 1, 'Heredia', 'Valle Central', 'Parque recreativo', -84.0959438, 10.0612382),
+    (89, 1, 'San José', 'Valle Central', 'Senderismo de montaña', -84.1460500, 9.8598169),
+    (90, 1, 'Alajuela', 'Valle Central', 'Laguna y parque recreativo', -84.1911687, 10.1253060),
+    (91, 1, 'San José', 'Valle Central', 'Parque urbano', -84.0096640, 9.9437298),
+    (92, 1, 'Cartago', 'Valle Central', 'Mirador de valle', -83.8584210, 9.8186821),
+    (93, 1, 'Cartago', 'Valle Central', 'Patrimonio histórico', -83.8362531, 9.8277188),
+    (94, 1, 'Cartago', 'Valle Central', 'Valle histórico y embalse', -83.8283303, 9.8298530),
+    (95, 5, 'Limón', 'Caribe', 'Catarata', -83.7952659, 10.1063631),
+    (96, 6, 'Heredia', 'Zona Norte', 'Refugio de vida silvestre', -84.1324786, 10.6549902),
+    (97, 3, 'Puntarenas', 'Pacífico Medio', 'Playa', -84.6684269, 9.7015677),
+    (98, 1, 'San José', 'Valle Central', 'Catarata', -84.3393600, 9.6935640),
+    (99, 3, 'Puntarenas', 'Pacífico Medio', 'Playa', -84.1684355, 9.4009014),
+    (100, 3, 'Puntarenas', 'Pacífico Medio', 'Playa', -83.9428706, 9.3085418),
+    (101, 3, 'Puntarenas', 'Pacífico Medio', 'Playa', -83.8429333, 9.2344184),
+    (102, 3, 'Puntarenas', 'Pacífico Medio', 'Playa', -83.7676681, 9.1951763),
+    (103, 4, 'Puntarenas', 'Puntarenas y Golfo de Nicoya', 'Humedal', -83.5491128, 8.8966952),
+    (104, 3, 'Puntarenas', 'Pacífico Medio', 'Catarata', -83.7293036, 9.1791986),
+    (105, 3, 'Puntarenas', 'Pacífico Medio', 'Playa', -83.6864237, 9.0996856),
+    (106, 4, 'Puntarenas', 'Puntarenas y Golfo de Nicoya', 'Senderismo de montaña', -82.9444398, 8.6778137),
+    (107, 4, 'Puntarenas', 'Puntarenas y Golfo de Nicoya', 'Isla y patrimonio histórico', -84.9082245, 9.9424707),
+    (108, 4, 'Puntarenas', 'Puntarenas y Golfo de Nicoya', 'Parque natural', -84.6681867, 10.1169419),
+    (109, 6, 'Alajuela', 'Zona Norte', 'Catarata', -85.0686307, 10.7225427),
+    (110, 6, 'Alajuela', 'Zona Norte', 'Laguna', -84.6206004, 10.5517672),
+    (111, 4, 'Puntarenas', 'Puntarenas y Golfo de Nicoya', 'Reserva privada', -85.0641517, 9.8633686),
+    (112, 5, 'Limón', 'Caribe', 'Playa', -82.6573585, 9.6337612),
+    (113, 4, 'Puntarenas', 'Puntarenas y Golfo de Nicoya', 'Playa e isla', -85.0804872, 9.5950555),
+    (114, 6, 'Alajuela', 'Zona Norte', 'Territorio indígena', -84.7897180, 10.6510309),
+    (115, 2, 'Guanacaste', 'Guanacaste', 'Volcán', -85.4480341, 10.9342764),
+    (116, 1, 'Cartago', 'Valle Central', 'Alta montaña', -83.4885816, 9.4843073),
+    (117, 5, 'Limón', 'Caribe', 'Alta montaña', -83.0320100, 9.2706700),
+    (118, 5, 'Limón', 'Caribe', 'Parque internacional', -83.2584271, 9.4262430),
+    (119, 4, 'Puntarenas', 'Puntarenas y Golfo de Nicoya', 'Catarata', -84.8130124, 10.3097624),
+    (120, 2, 'Guanacaste', 'Guanacaste', 'Playa', -85.8118479, 10.1657056),
+    (121, 5, 'Limón', 'Caribe', 'Playa', -82.7718941, 9.6575633),
+    (122, 4, 'Puntarenas', 'Puntarenas y Golfo de Nicoya', 'Playa', -85.1703544, 9.6438065),
+    (123, 2, 'Guanacaste', 'Guanacaste', 'Playa', -85.7394529, 11.0375386),
+    (124, 2, 'Guanacaste', 'Guanacaste', 'Playa y senderismo', -85.5442713, 11.0008640),
+    (125, 6, 'Heredia', 'Zona Norte', 'Laguna y humedal', -84.0294953, 10.7459426),
+    (126, 6, 'Alajuela', 'Zona Norte', 'Río y humedal', -84.7948253, 10.8786705),
+    (127, 3, 'Puntarenas', 'Pacífico Medio', 'Catarata', -83.6500000, 9.0200000),
+    (128, 3, 'Puntarenas', 'Pacífico Medio', 'Playa', -83.7143825, 9.1297560)
+) AS v(legacy_id, region_id, province, region, category, longitude, latitude)
+WHERE d.legacy_id = v.legacy_id;
+
+UPDATE public.destinations
+SET name = 'Catarata El Rey (Zapatón)'
+WHERE legacy_id = 98;
+
 -- 4. NORMATIVAS Y ALERTAS SINAC
 INSERT INTO public.normativas_destinos (
     destination_id, reserva_linea_obligatoria, guia_obligatorio,
@@ -833,9 +906,25 @@ SELECT
         ELSE 'Verificar pronóstico del Instituto Meteorológico Nacional (IMN).'
     END
 FROM public.destinations d
-ON CONFLICT DO NOTHING;
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM public.normativas_destinos n
+    WHERE n.destination_id = d.id
+);
 
--- 5. CATÁLOGO DE FAUNA DE COSTA RICA CON POSTGIS
+-- 5. FOTOS REALES DE DESTINOS (Wikimedia Commons, licencia verificable en la URL)
+-- Este UPDATE también corrige los destinos que ya existían antes de correr el seed.
+UPDATE public.destinations
+SET cover_image_url = CASE
+    WHEN name ILIKE '%Poás%' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Poas_crater.jpg/330px-Poas_crater.jpg'
+    WHEN name ILIKE '%Irazú%' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Irazu_Volcano.JPG/330px-Irazu_Volcano.JPG'
+    WHEN name ILIKE '%Arenal%' OR name ILIKE '%Tenorio%' OR name ILIKE '%Rincón de la Vieja%' OR name ILIKE '%Turrialba%' OR category ILIKE '%Volcán%' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Arenal_volcano_%2870785p%29_%28cropped%29.jpg/330px-Arenal_volcano_%2870785p%29_%28cropped%29.jpg'
+    WHEN name ILIKE '%Manuel Antonio%' OR category ILIKE '%Playa%' OR category ILIKE '%Marino%' OR name ILIKE '%Isla%' THEN 'https://upload.wikimedia.org/wikipedia/commons/5/5b/Parque_Nacional_Manuel_Antonio_1.JPG'
+    ELSE 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Sirena_Station_at_Corcovado_National_Park_Costa_Rica.jpg/330px-Sirena_Station_at_Corcovado_National_Park_Costa_Rica.jpg'
+END
+WHERE legacy_id BETWEEN 1 AND 128;
+
+-- 6. CATÁLOGO DE FAUNA DE COSTA RICA CON POSTGIS
 INSERT INTO public.fauna_species (
     common_name_es, common_name_en, scientific_name, category,
     description, habitat, vulnerability_status, sound_url, sound_name,
@@ -872,7 +961,7 @@ INSERT INTO public.fauna_species (
     'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80', ST_SetSRID(ST_MakePoint(-83.59, 8.48), 4326)
   ),
 (
-    'Danta o Tapir Centroamericano', 'Baird's Tapir', 'Tapirus bairdii', 'mamiferos',
+    'Danta o Tapir Centroamericano', 'Baird''s Tapir', 'Tapirus bairdii', 'mamiferos',
     'El mamífero terrestre autóctono más grande de los neotrópicos, excelente nadador y jardinero clave del bosque.', 'Selvas húmedas y pantanosas de Corcovado, Tapantí y Parque Nacional Braulio Carrillo.', 'En Peligro (EN)', NULL, 'Silbido agudo entre matorrales',
     'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80', ST_SetSRID(ST_MakePoint(-83.56, 8.52), 4326)
   ),
@@ -892,3 +981,25 @@ INSERT INTO public.fauna_species (
     'https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?auto=format&fit=crop&w=800&q=80', ST_SetSRID(ST_MakePoint(-84.1432, 9.3893), 4326)
   )
 ON CONFLICT (scientific_name) DO NOTHING;
+
+-- Fotos de referencia de cada especie, tomadas de Wikimedia Commons.
+-- Se actualizan aunque la especie ya existiera para eliminar los enlaces antiguos.
+UPDATE public.fauna_species
+SET image_url = CASE scientific_name
+    WHEN 'Agalychnis callidryas' THEN 'https://upload.wikimedia.org/wikipedia/commons/9/9e/Agalychnis_callidryas_Costa_Rica.JPG'
+    WHEN 'Pharomachrus mocinno' THEN 'https://upload.wikimedia.org/wikipedia/commons/7/70/Quetzal01.jpg'
+    WHEN 'Bradypus variegatus' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Bradypus.jpg/330px-Bradypus.jpg'
+    WHEN 'Ara macao' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Scarlet_macaw_%28Ara_macao_cyanopterus%29_Copan.jpg/330px-Scarlet_macaw_%28Ara_macao_cyanopterus%29_Copan.jpg'
+    WHEN 'Megaptera novaeangliae' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Humpback_whale_breaching_off_Cabo_San_Lucas.jpg/330px-Humpback_whale_breaching_off_Cabo_San_Lucas.jpg'
+    WHEN 'Panthera onca' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Standing_jaguar.jpg/330px-Standing_jaguar.jpg'
+    WHEN 'Tapirus bairdii' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Baird%27s_tapir_mother_with_baby_%2892151%29.jpg/330px-Baird%27s_tapir_mother_with_baby_%2892151%29.jpg'
+    WHEN 'Chelonia mydas' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Green_sea_turtle_%28Chelonia_mydas%29_Moorea.jpg/330px-Green_sea_turtle_%28Chelonia_mydas%29_Moorea.jpg'
+    WHEN 'Ramphastos sulfuratus' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Keel-billed_toucan_%28Ramphastos_sulfuratus_sulfuratus%29_on_foxtail_palm_%28Wodyetia_bifurcata%29_Cayo.jpg/330px-Keel-billed_toucan_%28Ramphastos_sulfuratus_sulfuratus%29_on_foxtail_palm_%28Wodyetia_bifurcata%29_Cayo.jpg'
+    WHEN 'Cebus imitator' THEN 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Panamanian_white-faced_capuchins_%2881622%292.jpg/330px-Panamanian_white-faced_capuchins_%2881622%292.jpg'
+    ELSE image_url
+END
+WHERE scientific_name IN (
+    'Agalychnis callidryas', 'Pharomachrus mocinno', 'Bradypus variegatus',
+    'Ara macao', 'Megaptera novaeangliae', 'Panthera onca', 'Tapirus bairdii',
+    'Chelonia mydas', 'Ramphastos sulfuratus', 'Cebus imitator'
+);

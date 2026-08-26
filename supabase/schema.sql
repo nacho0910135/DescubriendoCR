@@ -380,6 +380,34 @@ ALTER TABLE public.likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_follows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
+-- Permite ejecutar este archivo de nuevo sin que las políticas existentes fallen.
+DROP POLICY IF EXISTS "Lectura pública de perfiles de usuario" ON public.users;
+DROP POLICY IF EXISTS "Usuarios pueden actualizar su propio perfil" ON public.users;
+DROP POLICY IF EXISTS "Lectura pública de tipos de cambio" ON public.system_exchange_rates;
+DROP POLICY IF EXISTS "Service Role o Admins pueden insertar tipo de cambio" ON public.system_exchange_rates;
+DROP POLICY IF EXISTS "Lectura pública de regiones ICT" ON public.regiones_ict;
+DROP POLICY IF EXISTS "Lectura pública de destinos" ON public.destinations;
+DROP POLICY IF EXISTS "Admins pueden gestionar destinos" ON public.destinations;
+DROP POLICY IF EXISTS "Lectura pública de normativas SINAC" ON public.normativas_destinos;
+DROP POLICY IF EXISTS "Lectura pública de fauna de Costa Rica" ON public.fauna_species;
+DROP POLICY IF EXISTS "Lectura pública del álbum de fotos de fauna" ON public.fauna_photos;
+DROP POLICY IF EXISTS "Usuarios autenticados pueden subir fotos de fauna" ON public.fauna_photos;
+DROP POLICY IF EXISTS "Usuarios pueden eliminar sus propias fotos de fauna" ON public.fauna_photos;
+DROP POLICY IF EXISTS "Lectura pública de avistamientos reportados" ON public.user_fauna_sightings;
+DROP POLICY IF EXISTS "Usuarios pueden registrar sus propios avistamientos" ON public.user_fauna_sightings;
+DROP POLICY IF EXISTS "Lectura pública de comercios y servicios turísticos" ON public.commercial_services;
+DROP POLICY IF EXISTS "Comerciantes verificados pueden gestionar sus comercios" ON public.commercial_services;
+DROP POLICY IF EXISTS "Usuarios autenticados pueden registrar comercios pymes" ON public.commercial_services;
+DROP POLICY IF EXISTS "Lectura pública de reseñas" ON public.reviews;
+DROP POLICY IF EXISTS "Usuarios autenticados pueden escribir reseñas" ON public.reviews;
+DROP POLICY IF EXISTS "Usuarios pueden editar o borrar sus propias reseñas" ON public.reviews;
+DROP POLICY IF EXISTS "Lectura pública de likes" ON public.likes;
+DROP POLICY IF EXISTS "Usuarios autenticados pueden dar y quitar likes" ON public.likes;
+DROP POLICY IF EXISTS "Lectura pública de seguidores" ON public.user_follows;
+DROP POLICY IF EXISTS "Usuarios autenticados pueden seguir o dejar de seguir" ON public.user_follows;
+DROP POLICY IF EXISTS "Usuarios solo pueden ver sus propias notificaciones" ON public.notifications;
+DROP POLICY IF EXISTS "Usuarios pueden actualizar el estado de sus notificaciones" ON public.notifications;
+
 -- 9.1 USERS
 CREATE POLICY "Lectura pública de perfiles de usuario" 
     ON public.users FOR SELECT USING (true);
@@ -487,8 +515,12 @@ CREATE POLICY "Usuarios pueden actualizar el estado de sus notificaciones"
     ON public.notifications FOR UPDATE 
     USING (auth.uid() = recipient_id);
 
+/*
+-- Los datos pertenecen exclusivamente a supabase/seed.sql.
+-- Se conserva el bloque histórico abajo como referencia, pero no se ejecuta:
+-- sus IDs de regiones y destinos no coinciden con el seed vigente.
 -- ==============================================================================
--- 10. DATOS INICIALES (SEED DATA: REGIONES ICT, DESTINOS Y FAUNA CON POSTGIS)
+-- 10. DATOS INICIALES HISTÓRICOS (NO EJECUTAR)
 -- ==============================================================================
 
 -- 10.1 Regiones ICT
@@ -725,3 +757,4 @@ INSERT INTO public.commercial_services (
     ARRAY['https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80']
 )
 ON CONFLICT DO NOTHING;
+*/
